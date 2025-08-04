@@ -1,0 +1,443 @@
+<!-- templates/member/register_step1.html -->
+
+{% extends 'base.html' %}
+
+{% block guest_content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-lg w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-sm font-medium text-pink-600">Adım 1/4</span>
+                <span class="text-sm text-gray-500">Kişisel Bilgiler</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-500" style="width: 25%"></div>
+            </div>
+        </div>
+
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+                <span class="text-white font-bold text-2xl">B</span>
+            </div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent mb-2">
+                Hoş Geldiniz!
+            </h1>
+            <p class="text-gray-600">BinaryGirls ailesine katılmak için birkaç bilgiye ihtiyacımız var</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+            <form method="post" class="space-y-6" id="step1Form">
+                {% csrf_token %}
+                
+                <!-- First Name -->
+                <div class="relative">
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Adınız *
+                    </label>
+                    <div class="relative">
+                        {{ form.first_name }}
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <div class="w-5 h-5 text-gray-400">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="firstNameStatus" class="text-sm mt-1 hidden"></div>
+                    {% if form.first_name.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.first_name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Last Name -->
+                <div class="relative">
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Soyadınız *
+                    </label>
+                    <div class="relative">
+                        {{ form.last_name }}
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <div class="w-5 h-5 text-gray-400">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="lastNameStatus" class="text-sm mt-1 hidden"></div>
+                    {% if form.last_name.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.last_name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="relative">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        E-posta Adresiniz *
+                    </label>
+                    <div class="relative">
+                        {{ form.email }}
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <div class="w-5 h-5 text-gray-400" id="emailCheck">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="emailStatus" class="text-sm mt-1 hidden"></div>
+                    {% if form.email.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.email.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Info Box -->
+                <div class="bg-pink-50 border border-pink-200 rounded-xl p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="text-pink-500 mt-0.5">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-pink-800 mb-1">Bilgileriniz güvende</h4>
+                            <p class="text-sm text-pink-700">Kişisel bilgileriniz şifrelenerek saklanır ve üçüncü kişilerle paylaşılmaz.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between pt-4">
+                    <a href="{% url 'member:login' %}" id="backBtn" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        <span>Geri</span>
+                    </a>
+                    
+                    <button type="submit" id="nextBtn" class="px-8 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed transition-all duration-200 flex items-center space-x-2" disabled>
+                        <span>Devam Et</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Text -->
+        <div class="text-center mt-6">
+            <p class="text-sm text-gray-500">
+                Zaten hesabınız var mı? 
+                <a href="{% url 'member:login' %}" id="loginLink" class="text-pink-600 hover:text-pink-500 font-medium transition-colors">
+                    Giriş yapın
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js CDN for Avatar System -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+<!-- Avatar System -->
+<script src="{% load static %}{% static 'js/avatar-system.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Registration Avatar Assistant
+    const registerAvatar = new GuestAvatarSystem('registerStep1Avatar', {
+        size: 130,
+        position: { bottom: '20px', right: '20px' },
+        messages: {
+            welcome: "Merhaba! Kayıt sürecinin ilk adımına hoş geldiniz! Size bu adımda rehberlik edeceğim. Kişisel bilgilerinizi doğru şekilde girmenizde yardımcı olacağım.",
+            tooltip: "Kayıt Rehberiniz | 1. Adım: Kişisel Bilgiler"
+        },
+        autoStart: true
+    });
+
+    // Form elements
+    const firstNameField = document.getElementById('{{ form.first_name.id_for_label }}');
+    const lastNameField = document.getElementById('{{ form.last_name.id_for_label }}');
+    const emailField = document.getElementById('{{ form.email.id_for_label }}');
+    const nextBtn = document.getElementById('nextBtn');
+    const step1Form = document.getElementById('step1Form');
+
+    // Field-specific guidance
+    firstNameField.addEventListener('focus', function() {
+        registerAvatar.speak("Gerçek adınızı girin. Bu bilgi profilinizde görünecek ve size nasıl hitap edeceğimizi belirleyecek.", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    firstNameField.addEventListener('input', function() {
+        const value = this.value.trim();
+        const status = document.getElementById('firstNameStatus');
+        
+        if (value.length > 0) {
+            if (value.length < 2) {
+                status.className = 'text-orange-600 text-sm mt-1';
+                status.textContent = '⚠️ En az 2 karakter girmelisiniz';
+                status.classList.remove('hidden');
+            } else if (!/^[a-zA-ZÇĞIİÖŞÜçğıişöşü\s]+$/.test(value)) {
+                status.className = 'text-red-600 text-sm mt-1';
+                status.textContent = '❌ Sadece harf kullanabilirsiniz';
+                status.classList.remove('hidden');
+            } else {
+                status.className = 'text-green-600 text-sm mt-1';
+                status.textContent = '✅ Harika görünüyor!';
+                status.classList.remove('hidden');
+            }
+        } else {
+            status.classList.add('hidden');
+        }
+        checkFormValidity();
+    });
+
+    lastNameField.addEventListener('focus', function() {
+        registerAvatar.speak("Soyadınızı girin. Bu da profilinizin bir parçası olacak.", 
+            { emotion: 'smile', animation: 'Talking_1' });
+    });
+
+    lastNameField.addEventListener('input', function() {
+        const value = this.value.trim();
+        const status = document.getElementById('lastNameStatus');
+        
+        if (value.length > 0) {
+            if (value.length < 2) {
+                status.className = 'text-orange-600 text-sm mt-1';
+                status.textContent = '⚠️ En az 2 karakter girmelisiniz';
+                status.classList.remove('hidden');
+            } else if (!/^[a-zA-ZÇĞIİÖŞÜçğıişöşü\s]+$/.test(value)) {
+                status.className = 'text-red-600 text-sm mt-1';
+                status.textContent = '❌ Sadece harf kullanabilirsiniz';
+                status.classList.remove('hidden');
+            } else {
+                status.className = 'text-green-600 text-sm mt-1';
+                status.textContent = '✅ Mükemmel!';
+                status.classList.remove('hidden');
+            }
+        } else {
+            status.classList.add('hidden');
+        }
+        checkFormValidity();
+    });
+
+    emailField.addEventListener('focus', function() {
+        registerAvatar.speak("E-posta adresinizi girin. Bu adres giriş yapmak için kullanılacak ve önemli bildirimler bu adrese gelecek.", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    // Email validation
+    emailField.addEventListener('blur', function() {
+        const email = this.value.trim();
+        const status = document.getElementById('emailStatus');
+        const check = document.getElementById('emailCheck');
+        
+        if (email) {
+            // Basic email format validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                status.className = 'text-red-600 text-sm mt-1';
+                status.textContent = '❌ Geçerli bir e-posta adresi girin';
+                status.classList.remove('hidden');
+                check.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+                registerAvatar.speak("Bu e-posta adresi geçerli görünmüyor. Lütfen doğru formatta bir e-posta adresi girin.", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+                return;
+            }
+
+            fetch(`{% url 'member:check_email' %}?email=${encodeURIComponent(email)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.available) {
+                        status.className = 'text-green-600 text-sm mt-1';
+                        status.textContent = '✅ E-posta adresi kullanılabilir';
+                        check.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                        registerAvatar.speak("Harika! Bu e-posta adresi kullanılabilir. Devam edebiliriz!", 
+                            { emotion: 'happy', animation: 'Talking_1' });
+                    } else {
+                        status.className = 'text-red-600 text-sm mt-1';
+                        status.textContent = '❌ Bu e-posta adresi zaten kullanılıyor';
+                        check.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+                        registerAvatar.speak("Bu e-posta adresi zaten kullanılıyor. Başka bir e-posta adresi deneyin.", 
+                            { emotion: 'sad', animation: 'Talking_0' });
+                    }
+                    status.classList.remove('hidden');
+                    checkFormValidity();
+                })
+                .catch(error => {
+                    console.error('Email check failed:', error);
+                    registerAvatar.speak("E-posta kontrolünde bir sorun oldu. Devam edebilirsiniz.", 
+                        { emotion: 'thinking', animation: 'Standing Idle' });
+                });
+        }
+    });
+
+    // Form validation
+    function checkFormValidity() {
+        const firstName = firstNameField.value.trim();
+        const lastName = lastNameField.value.trim();
+        const email = emailField.value.trim();
+        
+        const isValid = firstName.length >= 2 && 
+                       lastName.length >= 2 && 
+                       email.length > 0 &&
+                       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+                       /^[a-zA-ZÇĞIİÖŞÜçğıişöşü\s]+$/.test(firstName) &&
+                       /^[a-zA-ZÇĞIİÖŞÜçğıişöşü\s]+$/.test(lastName);
+        
+        nextBtn.disabled = !isValid;
+        nextBtn.className = isValid 
+            ? 'px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2'
+            : 'px-8 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed transition-all duration-200 flex items-center space-x-2';
+        
+        if (isValid && !nextBtn.hasAttribute('data-ready-message-shown')) {
+            nextBtn.setAttribute('data-ready-message-shown', 'true');
+            setTimeout(() => {
+                registerAvatar.speak("Harika! Tüm bilgiler doğru görünüyor. İkinci adıma geçmeye hazırsınız!", 
+                    { emotion: 'excited', animation: 'Rumba Dancing' });
+            }, 500);
+        }
+    }
+
+    // Form submission
+    step1Form.addEventListener('submit', function(e) {
+        const firstName = firstNameField.value.trim();
+        const lastName = lastNameField.value.trim();
+        
+        registerAvatar.speak(`Merhaba ${firstName}! Bilgileriniz kaydediliyor. İkinci adıma geçiyoruz!`, 
+            { emotion: 'happy', animation: 'Talking_2' });
+        
+        // Store name for next steps
+        sessionStorage.setItem('registrationFirstName', firstName);
+        sessionStorage.setItem('registrationLastName', lastName);
+    });
+
+    // Navigation interactions
+    document.getElementById('backBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        registerAvatar.speak("Geri dönmek istiyorsunuz. Giriş sayfasına yönlendiriyorum.", 
+            { emotion: 'smile', animation: 'Talking_0', onComplete: () => {
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 800);
+            }});
+    });
+
+    document.getElementById('loginLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        registerAvatar.speak("Zaten hesabınız varmış! Giriş sayfasına yönlendiriyorum.", 
+            { emotion: 'smile', animation: 'Talking_1', onComplete: () => {
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 800);
+            }});
+    });
+
+    // Progress encouragement
+    let fieldsCompleted = 0;
+    [firstNameField, lastNameField, emailField].forEach(field => {
+        field.addEventListener('input', function() {
+            const completed = [firstNameField, lastNameField, emailField].filter(f => f.value.trim().length > 0).length;
+            if (completed > fieldsCompleted) {
+                fieldsCompleted = completed;
+                if (completed === 1) {
+                    registerAvatar.speak("Harika bir başlangıç! Devam edin.", 
+                        { emotion: 'happy', animation: 'Talking_0' });
+                } else if (completed === 2) {
+                    registerAvatar.speak("Çok iyi gidiyorsunuz! Bir alan daha kaldı.", 
+                        { emotion: 'happy', animation: 'Talking_1' });
+                } else if (completed === 3) {
+                    registerAvatar.speak("Mükemmel! Tüm alanları doldurdunuz. Şimdi bilgilerin doğruluğunu kontrol edelim.", 
+                        { emotion: 'excited', animation: 'Talking_2' });
+                }
+            }
+        });
+    });
+
+    // Avatar click interaction
+    setTimeout(() => {
+        if (registerAvatar.avatarAssistant) {
+            registerAvatar.avatarAssistant.addEventListener('click', function() {
+                const messages = [
+                    "Kayıt sürecinde size yardımcı olmak için buradayım! Hangi konuda yardıma ihtiyacınız var?",
+                    "Merhaba! Kişisel bilgilerinizi girmenizde rehberlik edebilirim.",
+                    "Form alanları hakkında sorularınız varsa, bana sorun!",
+                    "BinaryGirls ailesine katılmanıza az kaldı! Size nasıl yardımcı olabilirim?"
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                registerAvatar.speak(randomMessage, { emotion: 'happy', animation: 'Talking_1' });
+            });
+        }
+    }, 2000);
+
+    // Form animation on load
+    setTimeout(() => {
+        step1Form.style.opacity = '0';
+        step1Form.style.transform = 'translateY(20px)';
+        step1Form.style.transition = 'all 0.5s ease-out';
+        
+        setTimeout(() => {
+            step1Form.style.opacity = '1';
+            step1Form.style.transform = 'translateY(0)';
+        }, 100);
+    }, 500);
+
+    // Idle help
+    let idleTimer;
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            if (registerAvatar.isLoaded && fieldsCompleted < 3) {
+                registerAvatar.speak("Size yardımcı olabilir miyim? Form alanlarını doldurmakta zorlanıyorsanız, bana tıklayın!", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+            }
+        }, 20000); // 20 seconds
+    }
+
+    ['mousedown', 'keypress', 'input'].forEach(event => {
+        document.addEventListener(event, resetIdleTimer, true);
+    });
+
+    resetIdleTimer();
+});
+</script>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 50%, #f3e8ff 75%, #ede9fe 100%);
+        background-attachment: fixed;
+    }
+    
+    .form-field:focus {
+        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(236, 72, 153, 0.15);
+    }
+    
+    #{{ form.first_name.id_for_label }}:focus,
+    #{{ form.last_name.id_for_label }}:focus,
+    #{{ form.email.id_for_label }}:focus {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+    }
+</style>
+{% endblock %}

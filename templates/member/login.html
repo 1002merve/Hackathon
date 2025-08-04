@@ -1,0 +1,316 @@
+<!-- templates/member/login.html -->
+
+{% extends 'base.html' %}
+
+{% block guest_content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-md w-full">
+        <!-- Logo ve Başlık -->
+        <div class="text-center mb-8">
+            <div class="mx-auto w-20 h-20 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-4 shadow-2xl">
+                <span class="text-white font-bold text-3xl">B</span>
+            </div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent mb-2">
+                BinaryGirls
+            </h1>
+            <p class="text-gray-600">AI destekli asistanınıza hoş geldiniz</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Giriş Yap</h2>
+                <p class="text-gray-600">Hesabınıza giriş yapın</p>
+            </div>
+
+            <form method="post" class="space-y-6" id="loginForm">
+                {% csrf_token %}
+                
+                <!-- Username Field -->
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Kullanıcı Adı veya E-posta
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.username.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Şifre
+                    </label>
+                    <div class="relative">
+                        {{ form.password }}
+                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <svg id="eyeIcon" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.password.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" name="remember" class="rounded border-gray-300 text-pink-600 focus:ring-pink-500">
+                        <label for="remember" class="ml-2 text-sm text-gray-600">Beni hatırla</label>
+                    </div>
+                    <a href="#" id="forgotPasswordLink" class="text-sm text-pink-600 hover:text-pink-500 transition-colors">
+                        Şifremi unuttum
+                    </a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="loginBtn" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-3 px-6 rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all duration-200 transform hover:scale-105 shadow-lg font-medium">
+                    🚀 Giriş Yap
+                </button>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        {% for error in form.non_field_errors %}
+                            <p class="text-red-600 text-sm">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </form>
+
+            <!-- Register Link -->
+            <div class="mt-8 text-center">
+                <p class="text-gray-600">
+                    Hesabınız yok mu? 
+                    <a href="{% url 'member:register_step1' %}" id="registerLink" class="text-pink-600 hover:text-pink-500 font-medium transition-colors">
+                        Hemen kayıt olun
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="mt-8 grid grid-cols-3 gap-4 text-center">
+            <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20" id="feature1">
+                <div class="text-2xl mb-2">🤖</div>
+                <p class="text-sm text-gray-600">AI Asistan</p>
+            </div>
+            <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20" id="feature2">
+                <div class="text-2xl mb-2">📚</div>
+                <p class="text-sm text-gray-600">Çözüm Merkezi</p>
+            </div>
+            <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20" id="feature3">
+                <div class="text-2xl mb-2">🎨</div>
+                <p class="text-sm text-gray-600">Avatar Oluştur</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js CDN for Avatar System -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+<!-- Avatar System -->
+<script src="{% load static %}{% static 'js/avatar-system.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Login Avatar Assistant
+    const loginAvatar = new GuestAvatarSystem('loginAvatar', {
+        size: 120,
+        position: { bottom: '20px', right: '20px' },
+        messages: {
+            welcome: "Tekrar hoş geldiniz! Giriş yapmak için size yardımcı olacağım. Form alanlarını doldurmanızda rehberlik edebilirim.",
+            tooltip: "Giriş Rehberiniz | Size yardımcı olmak için buradayım!"
+        },
+        autoStart: true
+    });
+
+    // Form elements
+    const usernameField = document.getElementById('{{ form.username.id_for_label }}');
+    const passwordField = document.getElementById('{{ form.password.id_for_label }}');
+    const loginForm = document.getElementById('loginForm');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    // Field focus interactions
+    usernameField.addEventListener('focus', function() {
+        loginAvatar.speak("Kullanıcı adınızı veya e-posta adresinizi girin. Kayıt olurken kullandığınız bilgileri kullanabilirsiniz.", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    passwordField.addEventListener('focus', function() {
+        loginAvatar.speak("Şifrenizi girin. Eğer şifrenizi unuttuysanız, 'Şifremi unuttum' bağlantısını kullanabilirsiniz.", 
+            { emotion: 'smile', animation: 'Talking_1' });
+    });
+
+    // Password toggle functionality
+    togglePassword.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        
+        if (type === 'text') {
+            eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>';
+            loginAvatar.speak("Şifreniz artık görünür. Güvenli olduğunuzdan emin olun!", 
+                { emotion: 'thinking', animation: 'Standing Idle' });
+        } else {
+            eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+        }
+    });
+
+    // Form validation and guidance
+    let hasInteracted = false;
+    
+    [usernameField, passwordField].forEach(field => {
+        field.addEventListener('input', function() {
+            if (!hasInteracted) {
+                hasInteracted = true;
+                setTimeout(() => {
+                    loginAvatar.speak("Harika! Bilgilerinizi giriyorsunuz. Her şey doğru göründüğünde giriş yapabilirsiniz.", 
+                        { emotion: 'happy', animation: 'Talking_0' });
+                }, 1000);
+            }
+        });
+    });
+
+    // Form submission handling
+    loginForm.addEventListener('submit', function(e) {
+        const username = usernameField.value.trim();
+        const password = passwordField.value.trim();
+        
+        if (!username || !password) {
+            e.preventDefault();
+            loginAvatar.speak("Lütfen tüm alanları doldurun. Kullanıcı adı ve şifre gerekli!", 
+                { emotion: 'thinking', animation: 'Talking_1' });
+            return;
+        }
+        
+        // Show loading state
+        const loginBtn = document.getElementById('loginBtn');
+        loginBtn.innerHTML = '🔄 Giriş yapılıyor...';
+        loginBtn.disabled = true;
+        
+        loginAvatar.speak("Bilgileriniz kontrol ediliyor... Lütfen bekleyin!", 
+            { emotion: 'thinking', animation: 'Standing Idle' });
+    });
+
+    // Handle form errors
+    {% if form.errors %}
+    setTimeout(() => {
+        loginAvatar.speak("Üzgünüm, giriş bilgilerinizde bir sorun var. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.", 
+            { emotion: 'sad', animation: 'Talking_1' });
+    }, 1000);
+    {% endif %}
+
+    // Register link interaction
+    document.getElementById('registerLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        loginAvatar.speak("Yeni hesap oluşturmak harika bir fikir! Size kayıt sürecinde yardımcı olacağım. Hemen yönlendiriyorum!", 
+            { emotion: 'excited', animation: 'Rumba Dancing', onComplete: () => {
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 1000);
+            }});
+    });
+
+    // Forgot password link interaction
+    document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        loginAvatar.speak("Şifrenizi mi unuttunuz? Endişelenmeyin! Şifre sıfırlama özelliği yakında aktif olacak. Şimdilik destek ekibimizle iletişime geçebilirsiniz.", 
+            { emotion: 'smile', animation: 'Talking_1' });
+    });
+
+    // Feature hover interactions
+    const featureMessages = [
+        "AI asistanınız her zaman yanınızda! Sorularınızı çözmeye hazır.",
+        "Binlerce çözüme anında erişim! Öğrenmenin en etkili yolu.",
+        "Kendi AI avatarınızı oluşturun ve onunla etkileşime geçin!"
+    ];
+
+    document.querySelectorAll('[id^="feature"]').forEach((feature, index) => {
+        feature.addEventListener('mouseenter', function() {
+            loginAvatar.speak(featureMessages[index], { 
+                emotion: 'happy', 
+                animation: 'Talking_0',
+                rate: 1.1 
+            });
+        });
+    });
+
+    // Idle reminder
+    let idleTimer;
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            if (loginAvatar.isLoaded && !usernameField.value && !passwordField.value) {
+                loginAvatar.speak("Size yardımcı olabilir miyim? Giriş yapmakta zorlanıyorsanız, form alanlarına tıklayın!", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+            }
+        }, 15000); // 15 seconds
+    }
+
+    ['mousedown', 'keypress', 'input'].forEach(event => {
+        document.addEventListener(event, resetIdleTimer, true);
+    });
+
+    resetIdleTimer();
+
+    // Avatar click interaction
+    setTimeout(() => {
+        if (loginAvatar.avatarAssistant) {
+            loginAvatar.avatarAssistant.addEventListener('click', function() {
+                const messages = [
+                    "Giriş yapmakta yardıma ihtiyacınız var mı? Size rehberlik edebilirim!",
+                    "Hoş geldiniz! Giriş formunu doldurmanızda size yardımcı olabilirim.",
+                    "Merhaba! Herhangi bir sorunuz varsa, bana söyleyebilirsiniz.",
+                    "BinaryGirls'e tekrar hoş geldiniz! Giriş sürecinizde yanınızdayım."
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                loginAvatar.speak(randomMessage, { emotion: 'happy', animation: 'Talking_1' });
+            });
+        }
+    }, 2000);
+
+    // Welcome back message for returning users
+    if (localStorage.getItem('binarygirlsUser')) {
+        setTimeout(() => {
+            loginAvatar.speak("Tekrar hoş geldiniz! Sizi burada görmek harika. Giriş bilgilerinizi girin ve hemen başlayalım!", 
+                { emotion: 'excited', animation: 'Talking_2' });
+        }, 2000);
+    }
+});
+</script>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 50%, #f3e8ff 75%, #ede9fe 100%);
+        background-attachment: fixed;
+    }
+    
+    .form-field-focused {
+        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(236, 72, 153, 0.1);
+    }
+    
+    #{{ form.username.id_for_label }}:focus,
+    #{{ form.password.id_for_label }}:focus {
+        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(236, 72, 153, 0.15);
+        border-color: #ec4899;
+    }
+</style>
+{% endblock %}

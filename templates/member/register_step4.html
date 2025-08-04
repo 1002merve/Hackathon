@@ -1,0 +1,387 @@
+<!-- templates/member/register_step4.html -->
+
+{% extends 'base.html' %}
+
+{% block guest_content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-lg w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-sm font-medium text-pink-600">Adım 4/4</span>
+                <span class="text-sm text-gray-500">Onay</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-500" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+                <span class="text-white font-bold text-2xl">✅</span>
+            </div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent mb-2">
+                Bilgilerinizi Onaylayın
+            </h1>
+            <p class="text-gray-600">Son kontrol! Bilgileriniz doğru mu?</p>
+        </div>
+
+        <!-- Summary -->
+        <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20 mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center space-x-2">
+                <span>📋</span>
+                <span>Hesap Özeti</span>
+            </h3>
+            
+            <div class="space-y-4">
+                <!-- Personal Info -->
+                <div class="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors" id="personalInfoSection">
+                    <h4 class="font-medium text-gray-700 mb-2 flex items-center space-x-2">
+                        <span>👤</span>
+                        <span>Kişisel Bilgiler</span>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">Ad:</span>
+                            <span class="font-medium ml-2">{{ step1_data.first_name }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Soyad:</span>
+                            <span class="font-medium ml-2">{{ step1_data.last_name }}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-gray-500">E-posta:</span>
+                            <span class="font-medium ml-2">{{ step1_data.email }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Info -->
+                <div class="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors" id="accountInfoSection">
+                    <h4 class="font-medium text-gray-700 mb-2 flex items-center space-x-2">
+                        <span>🔐</span>
+                        <span>Hesap Bilgileri</span>
+                    </h4>
+                    <div class="text-sm">
+                        <span class="text-gray-500">Kullanıcı adı:</span>
+                        <span class="font-medium ml-2">{{ step2_data.username }}</span>
+                    </div>
+                    <div class="text-sm mt-1">
+                        <span class="text-gray-500">Şifre:</span>
+                        <span class="font-medium ml-2 text-green-600">✅ Güvenli şifre oluşturuldu</span>
+                    </div>
+                </div>
+
+                <!-- Profile Info -->
+                <div class="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors" id="profileInfoSection">
+                    <h4 class="font-medium text-gray-700 mb-2 flex items-center space-x-2">
+                        <span>🎨</span>
+                        <span>Profil Bilgileri</span>
+                    </h4>
+                    <div class="text-sm">
+                        {% if step3_data.gender %}
+                        <div>
+                            <span class="text-gray-500">Cinsiyet:</span>
+                            <span class="font-medium ml-2">
+                                {% if step3_data.gender == 'female' %}👩 Kadın
+                                {% elif step3_data.gender == 'male' %}👨 Erkek
+                                {% else %}🧑 Diğer{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        {% if step3_data.birth_date %}
+                        <div class="mt-1">
+                            <span class="text-gray-500">Doğum tarihi:</span>
+                            <span class="font-medium ml-2">{{ step3_data.birth_date }}</span>
+                        </div>
+                        {% endif %}
+                        {% if step3_data.avatar %}
+                        <div class="mt-1">
+                            <span class="text-gray-500">Profil fotoğrafı:</span>
+                            <span class="font-medium ml-2 text-green-600">✅ Yüklendi</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl" id="termsSection">
+                <label class="flex items-start space-x-3 cursor-pointer">
+                    <input type="checkbox" id="termsAccept" class="mt-1 rounded border-gray-300 text-pink-600 focus:ring-pink-500" required>
+                    <div class="text-sm text-blue-800">
+                        <span class="font-medium">📜 Kullanım Şartları ve Gizlilik Politikası</span>'nı okudum ve kabul ediyorum. 
+                        BinaryGirls hizmetlerini kullanmak için gerekli olan tüm koşulları kabul ediyorum.
+                        <div class="mt-2 text-xs text-blue-600">
+                            • Kişisel verileriniz güvenle saklanır<br>
+                            • Üçüncü kişilerle paylaşılmaz<br>
+                            • İstediğiniz zaman hesabınızı silebilirsiniz
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Create Account Form -->
+        <form method="post" id="finalForm">
+            {% csrf_token %}
+            
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between">
+                <a href="{% url 'member:register_step3' %}" id="backBtn" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    <span>Önceki</span>
+                </a>
+                
+                <button type="submit" id="createAccountBtn" class="px-8 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed flex items-center space-x-2" disabled>
+                    <span>🎉 Hesap Oluştur</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+        <!-- Benefits -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-600 mb-4">BinaryGirls'e katıldığınız için teşekkürler! 🎉</p>
+            <div class="grid grid-cols-3 gap-3" id="benefitsSection">
+                <div class="bg-white/60 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:scale-105 transition-transform cursor-pointer" data-benefit="ai">
+                    <div class="text-xl mb-1">🤖</div>
+                    <p class="text-xs text-gray-600">AI Asistan</p>
+                </div>
+                <div class="bg-white/60 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:scale-105 transition-transform cursor-pointer" data-benefit="solutions">
+                    <div class="text-xl mb-1">📚</div>
+                    <p class="text-xs text-gray-600">Sınırsız Çözüm</p>
+                </div>
+                <div class="bg-white/60 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:scale-105 transition-transform cursor-pointer" data-benefit="premium">
+                    <div class="text-xl mb-1">⭐</div>
+                    <p class="text-xs text-gray-600">Premium Özellikler</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js CDN for Avatar System -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+<!-- Avatar System -->
+<script src="{% load static %}{% static 'js/avatar-system.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get stored information from all previous steps
+    const firstName = sessionStorage.getItem('registrationFirstName') || 'Kullanıcı';
+    const username = sessionStorage.getItem('registrationUsername') || 'kullanıcı';
+    const gender = sessionStorage.getItem('registrationGender') || 'not_specified';
+    const hasAvatar = sessionStorage.getItem('registrationAvatar') === 'uploaded';
+    
+    // Initialize Registration Step 4 Avatar Assistant
+    const registerAvatar = new GuestAvatarSystem('registerStep4Avatar', {
+        size: 140,
+        position: { bottom: '20px', right: '20px' },
+        messages: {
+            welcome: `Harika ${firstName}! Son adıma geldik! Bilgilerinizi kontrol edin ve onaylayın. Hesabınız oluşturulmaya çok az kaldı!`,
+            tooltip: "Kayıt Rehberiniz | 4. Adım: Son Kontrol ve Onay"
+        },
+        autoStart: true
+    });
+
+    // Form elements
+    const termsCheckbox = document.getElementById('termsAccept');
+    const createAccountBtn = document.getElementById('createAccountBtn');
+    const finalForm = document.getElementById('finalForm');
+
+    // Terms acceptance with avatar guidance
+    termsCheckbox.addEventListener('change', function() {
+        const isChecked = this.checked;
+        
+        createAccountBtn.disabled = !isChecked;
+        createAccountBtn.className = isChecked 
+            ? 'px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2'
+            : 'px-8 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed flex items-center space-x-2';
+        
+        if (isChecked) {
+            registerAvatar.speak("Harika! Şartları kabul ettiniz. Artık hesabınızı oluşturmaya hazırsınız! Son bir adım kaldı!", 
+                { emotion: 'excited', animation: 'Rumba Dancing' });
+        } else {
+            registerAvatar.speak("Hesap oluşturmak için kullanım şartlarını kabul etmelisiniz. Merak etmeyin, gizliliğinizi koruyoruz!", 
+                { emotion: 'thinking', animation: 'Standing Idle' });
+        }
+    });
+
+    // Section interactions for detailed explanations
+    document.getElementById('personalInfoSection').addEventListener('click', function() {
+        registerAvatar.speak("Kişisel bilgileriniz burada. Eğer bir değişiklik yapmak istiyorsanız, önceki adımlara geri dönebilirsiniz.", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    document.getElementById('accountInfoSection').addEventListener('click', function() {
+        registerAvatar.speak("Hesap bilgileriniz güvenli şekilde kaydedildi. Kullanıcı adınız ve şifreniz hazır!", 
+            { emotion: 'smile', animation: 'Talking_1' });
+    });
+
+    document.getElementById('profileInfoSection').addEventListener('click', function() {
+        let message = "Profil bilgileriniz ";
+        if (hasAvatar) message += "ve fotoğrafınız ";
+        message += "başarıyla ayarlandı. İstediğiniz zaman değiştirebilirsiniz.";
+        
+        registerAvatar.speak(message, 
+            { emotion: 'happy', animation: 'Talking_0' });
+    });
+
+    document.getElementById('termsSection').addEventListener('click', function() {
+        registerAvatar.speak("Kullanım şartları size güvenli bir deneyim sunmak için var. Gizliliğinizi koruyoruz ve verilerinizi güvende tutuyoruz!", 
+            { emotion: 'smile', animation: 'Talking_1' });
+    });
+
+    // Benefits section interactions
+    document.querySelectorAll('[data-benefit]').forEach(benefit => {
+        benefit.addEventListener('click', function() {
+            const benefitType = this.getAttribute('data-benefit');
+            const messages = {
+                'ai': "AI asistanınız 7/24 sorularınızı yanıtlayacak! Matematik, fizik, kimya... Her konuda yardım alabilirsiniz.",
+                'solutions': "Binlerce hazır çözüme erişeceksiniz! Her seviyeden problem ve detaylı açıklamalar.",
+                'premium': "Premium özelliklerle öğrenme deneyiminiz bambaşka olacak! Kişisel avatar, video çözümler ve daha fazlası."
+            };
+            
+            registerAvatar.speak(messages[benefitType], 
+                { emotion: 'excited', animation: 'Talking_2' });
+        });
+    });
+
+    // Form submission with celebration
+    finalForm.addEventListener('submit', function(e) {
+        createAccountBtn.innerHTML = '<span>🔄 Hesap oluşturuluyor...</span>';
+        createAccountBtn.disabled = true;
+        
+        registerAvatar.speak(`Tebrikler ${firstName}! Hesabınız oluşturuluyor... BinaryGirls ailesine hoş geldiniz! 🎉`, 
+            { emotion: 'excited', animation: 'Rumba Dancing' });
+        
+        // Clear session storage after successful submission
+        setTimeout(() => {
+            sessionStorage.removeItem('registrationFirstName');
+            sessionStorage.removeItem('registrationLastName');
+            sessionStorage.removeItem('registrationUsername');
+            sessionStorage.removeItem('registrationGender');
+            sessionStorage.removeItem('registrationBirthDate');
+            sessionStorage.removeItem('registrationAvatar');
+        }, 1000);
+    });
+
+    // Navigation
+    document.getElementById('backBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        registerAvatar.speak("Profil kişiselleştirme adımına geri dönüyorsunuz. Yönlendiriyorum.", 
+            { emotion: 'smile', animation: 'Talking_0', onComplete: () => {
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 800);
+            }});
+    });
+
+    // Avatar interaction with final encouragement
+    setTimeout(() => {
+        if (registerAvatar.avatarAssistant) {
+            registerAvatar.avatarAssistant.addEventListener('click', function() {
+                const messages = [
+                    `${firstName}, kayıt sürecini harika tamamladınız! Bilgilerinizi kontrol edin ve hesabınızı oluşturun!`,
+                    "Son adımdasınız! Kullanım şartlarını kabul edin ve BinaryGirls ailesine katılın!",
+                    "Çok az kaldı! Hesabınız oluşturulduktan sonra AI destekli öğrenmeye başlayabilirsiniz!",
+                    "Bu yolculukta size rehberlik etmek harika oldu. Şimdi hesabınızı oluşturup başlayalım!"
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                registerAvatar.speak(randomMessage, { emotion: 'excited', animation: 'Rumba Dancing' });
+            });
+        }
+    }, 2000);
+
+    // Final encouragement after a delay
+    setTimeout(() => {
+        if (!termsCheckbox.checked) {
+            registerAvatar.speak("Kullanım şartlarını kabul ederek hesabınızı oluşturmaya hazır mısınız? Heyecan verici bir öğrenme deneyimi sizi bekliyor!", 
+                { emotion: 'excited', animation: 'Talking_1' });
+        }
+    }, 5000);
+
+    // Success celebration when terms are accepted
+    let celebrationShown = false;
+    termsCheckbox.addEventListener('change', function() {
+        if (this.checked && !celebrationShown) {
+            celebrationShown = true;
+            setTimeout(() => {
+                registerAvatar.speak("YAŞASIN! Artık hesabınızı oluşturmaya hazırsınız! Bu çok heyecan verici! 🎊", 
+                    { emotion: 'excited', animation: 'Rumba Dancing' });
+            }, 500);
+        }
+    });
+
+    // Registration completion sequence
+    window.addEventListener('beforeunload', function() {
+        if (createAccountBtn.disabled && createAccountBtn.innerHTML.includes('oluşturuluyor')) {
+            registerAvatar.speak("Hesabınız başarıyla oluşturuldu! Hoş geldiniz!", 
+                { emotion: 'excited', animation: 'Rumba Dancing' });
+        }
+    });
+
+    // Show completion progress
+    setTimeout(() => {
+        registerAvatar.speak("Kayıt sürecinin %100'ünü tamamladınız! Artık sadece bir tıklama uzaklıktasınız!", 
+            { emotion: 'happy', animation: 'Talking_2' });
+    }, 3000);
+
+    // Auto-focus on terms when page loads
+    setTimeout(() => {
+        const termsSection = document.getElementById('termsSection');
+        termsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        setTimeout(() => {
+            registerAvatar.speak("Lütfen kullanım şartlarını okuyun ve kabul edin. Bu son adım!", 
+                { emotion: 'smile', animation: 'Talking_0' });
+        }, 1000);
+    }, 2000);
+});
+</script>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 50%, #f3e8ff 75%, #ede9fe 100%);
+        background-attachment: fixed;
+    }
+    
+    .bg-gray-50:hover {
+        background-color: #f9fafb;
+    }
+    
+    [data-benefit]:hover {
+        box-shadow: 0 8px 25px rgba(236, 72, 153, 0.2);
+    }
+    
+    #termsAccept:checked + div {
+        animation: glow 0.5s ease-in-out;
+    }
+    
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+    }
+    
+    .progress-celebration {
+        animation: celebration 2s ease-in-out;
+    }
+    
+    @keyframes celebration {
+        0%, 100% { transform: scale(1); }
+        25% { transform: scale(1.05); }
+        50% { transform: scale(1.1); }
+        75% { transform: scale(1.05); }
+    }
+</style>
+{% endblock %}

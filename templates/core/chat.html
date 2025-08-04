@@ -1,0 +1,1662 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Soru Çöz{% endblock %}
+{% block page_description %}AI asistanınızla sohbet edin ve sorularınızın yanıtlarını alın{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-full">
+    <div class="p-6 border-b border-white/20 dark:border-gray-700/30">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-4">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">💬 Sohbet</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        {% if active_session.title %}
+                            {{ active_session.title }}
+                        {% else %}
+                            Oturum {{ active_session.id }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Aktif Oturum</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button id="newChatBtn" onclick="startNewChat()" class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Yeni Sohbet</span>
+                </button>
+                
+                <button id="loadChatBtn" onclick="showChatSessions()" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-xl transition-colors flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                    </svg>
+                    <span>Geçmiş Sohbet</span>
+                </button>
+                
+                <a href="{% url 'core:chat_history' %}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Geçmiş</span>
+                </a>
+                
+                <a href="{% url 'core:chat_sessions' %}" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition-colors flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                    </svg>
+                    <span>Oturumlar</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="flex items-center justify-between p-3 glass-effect rounded-xl border border-white/20">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-500/20 rounded-lg">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">Bu Oturum</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ messages.count }} mesaj • {{ active_session.created_at|timesince }} önce başlatıldı</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-gray-600 dark:text-gray-400">Son güncelleme</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ active_session.updated_at|timesince }} önce</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 custom-scrollbar" id="chatArea">
+        <div class="max-w-4xl mx-auto space-y-6" id="messagesContainer">
+            {% if not messages %}
+            <div class="text-center py-12">
+                <div class="relative mb-8">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-32 h-32 bg-gradient-to-r from-pink-500/20 to-rose-500/20 rounded-full animate-pulse"></div>
+                    </div>
+                    <div class="relative w-24 h-24 mx-auto gradient-bg rounded-full flex items-center justify-center shadow-2xl">
+                        <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                    Yeni sohbetinize hoş geldiniz! 👋
+                </h3>
+                <p class="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+                    Bu yeni oturumda size nasıl yardımcı olabilirim? AI destekli çözümlerle her türlü sorunuza yanıt bulabilirsiniz.
+                </p>
+                
+                <div class="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                    <button onclick="sendSuggestedMessage('Matematik dersinde yardıma ihtiyacım var')" class="p-6 glass-effect rounded-2xl border border-white/20 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-left group">
+                        <div class="flex items-start space-x-4">
+                            <div class="p-3 gradient-bg rounded-xl group-hover:scale-110 transition-transform shadow-lg">
+                                <span class="text-2xl">📐</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Matematik Yardımı</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Matematik problemlerinde detaylı yardım alın</p>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="sendSuggestedMessage('Fizik konularında bilgi almak istiyorum')" class="p-6 glass-effect rounded-2xl border border-white/20 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-left group">
+                        <div class="flex items-start space-x-4">
+                            <div class="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl group-hover:scale-110 transition-transform shadow-lg">
+                                <span class="text-2xl">⚛️</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Fizik Konuları</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Fizik derslerinde kapsamlı destek</p>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="sendSuggestedMessage('Kimya deneyleri hakkında bilgi istiyorum')" class="p-6 glass-effect rounded-2xl border border-white/20 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-left group">
+                        <div class="flex items-start space-x-4">
+                            <div class="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl group-hover:scale-110 transition-transform shadow-lg">
+                                <span class="text-2xl">🧪</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Kimya Deneyleri</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Kimya konularında uzman rehberlik</p>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="sendSuggestedMessage('Genel çalışma teknikleri önerir misin?')" class="p-6 glass-effect rounded-2xl border border-white/20 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-left group">
+                        <div class="flex items-start space-x-4">
+                            <div class="p-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl group-hover:scale-110 transition-transform shadow-lg">
+                                <span class="text-2xl">📚</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Çalışma Teknikleri</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Verimli çalışma yöntemleri</p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="mt-12 grid grid-cols-3 gap-6 max-w-lg mx-auto">
+                    <div class="text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-pink-500/20 rounded-xl flex items-center justify-center">
+                            <span class="text-xl">⚡</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Hızlı Yanıt</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                            <span class="text-xl">🎯</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Doğru Çözüm</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-green-500/20 rounded-xl flex items-center justify-center">
+                            <span class="text-xl">🔄</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Yeni Oturum</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            {% for message in messages %}
+            <div class="flex {% if message.is_bot_response %}justify-start{% else %}justify-end{% endif %} message-container opacity-0" data-message-id="{{ message.id }}" style="animation-delay: {{ forloop.counter0|floatformat:1 }}00ms">
+                <div class="max-w-xs lg:max-w-md group relative">
+                    <!-- Video Generation Button (Existing) -->
+                    <div class="absolute -top-2 -right-2 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100">
+                        <button onclick="openVideoModal({{ message.id }})" class="video-trigger-btn p-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 relative" title="Buraya kadar olanı videolu çözüm oluştur">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                            </svg>
+                            <div class="absolute inset-0 rounded-full bg-purple-400 animate-ping opacity-75"></div>
+                        </button>
+                    </div>
+
+                    <div class="px-6 py-4 rounded-2xl transform transition-all duration-200 hover:scale-105 shadow-lg
+                        {% if message.is_bot_response %}
+                            glass-effect border border-white/20 dark:border-gray-600/30 text-gray-800 dark:text-gray-100
+                        {% else %}
+                            gradient-bg text-white shadow-pink-500/25
+                        {% endif %}">
+                        
+                        {% if message.is_bot_response %}
+                        <div class="flex items-start space-x-3 mb-2">
+                            <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white text-sm font-bold">AI</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">BinaryGirls AI</p>
+                                <div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                    <span>Aktif</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <p class="text-sm leading-relaxed message-content">{{ message.message }}</p>
+                        
+                        <div class="flex items-center justify-between mt-3">
+                            <p class="text-xs {% if message.is_bot_response %}text-gray-500 dark:text-gray-400{% else %}text-pink-100{% endif %}">
+                                {{ message.created_at|date:"H:i" }}
+                            </p>
+                            
+                            {% if not message.is_bot_response %}
+                            <div class="flex items-center space-x-1">
+                                <svg class="w-4 h-4 text-pink-200" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- YouTube Video Suggestions Button (NEW) - Only for AI messages -->
+                        {% if message.is_bot_response %}
+                        <div class="flex justify-end mt-3">
+                            <button onclick="showVideoSuggestions('{{ message.id }}')" class="youtube-suggestion-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 transform hover:scale-110 group/youtube" title="İlgili video önerileri">
+                                <svg class="w-4 h-4 group-hover/youtube:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div id="typingIndicator" class="max-w-4xl mx-auto mt-6 hidden">
+            <div class="flex justify-start">
+                <div class="max-w-xs">
+                    <div class="px-6 py-4 glass-effect rounded-2xl border border-white/20 dark:border-gray-600/30">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-bold">AI</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="flex space-x-1">
+                                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce"></div>
+                                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                                </div>
+                                <span class="text-sm text-gray-500 dark:text-gray-400 ml-3">BinaryGirls yazıyor...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="p-6 border-t border-white/20 dark:border-gray-700/30">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center space-x-2 mb-4">
+                <button onclick="document.getElementById('fileInput').click()" class="p-3 glass-effect rounded-xl hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-200 transform hover:scale-110 group">
+                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-pink-500 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                <button class="p-3 glass-effect rounded-xl hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-200 transform hover:scale-110 group">
+                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-pink-500 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                
+                <div class="flex items-center space-x-2 ml-4">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Hızlı:</span>
+                    <button onclick="sendSuggestedMessage('Merhaba!')" class="px-3 py-1 text-xs glass-effect rounded-full hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors">
+                        👋 Merhaba
+                    </button>
+                    <button onclick="sendSuggestedMessage('Yardım ister misin?')" class="px-3 py-1 text-xs glass-effect rounded-full hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors">
+                        ❓ Yardım
+                    </button>
+                </div>
+            </div>
+            
+            <form id="messageForm" class="flex space-x-4">
+                {% csrf_token %}
+                <input type="file" id="fileInput" class="hidden" accept="image/*,audio/*,.pdf,.doc,.docx">
+                <div class="flex-1 relative">
+                    <input
+                        type="text"
+                        id="messageInput"
+                        placeholder="Bu oturumda mesajınızı yazın... (Shift+Enter ile yeni satır)"
+                        class="w-full pl-6 pr-16 py-4 glass-effect rounded-2xl border border-white/20 dark:border-gray-600/30 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                        autocomplete="off"
+                    />
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                        <span id="charCounter" class="text-xs text-gray-400">0/500</span>
+                    </div>
+                </div>
+                <button
+                    type="submit"
+                    id="sendButton"
+                    disabled
+                    class="px-8 py-4 bg-gray-300 text-gray-500 rounded-2xl cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-lg relative overflow-hidden"
+                >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                    </svg>
+                    <span>Gönder</span>
+                    
+                    <div id="sendingAnimation" class="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center opacity-0 transition-opacity duration-200">
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        </div>
+                    </div>
+                </button>
+            </form>
+            
+            <div class="flex items-center justify-center mt-4">
+                <div class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span>AI asistanınız bu oturumda aktif ve hazır</span>
+                    <span>•</span>
+                    <span>Oturum {{ session_id }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat Sessions Modal (Existing) -->
+<div id="chatSessionsModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeChatSessions()"></div>
+    
+    <div class="relative h-full flex items-center justify-center p-4">
+        <div class="glass-effect rounded-3xl border border-white/20 max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-white/20">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">Geçmiş Sohbetler</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Devam etmek istediğiniz sohbeti seçin</p>
+                    </div>
+                </div>
+                <button onclick="closeChatSessions()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto max-h-[60vh]" id="sessionsListContainer">
+                <div class="text-center py-8">
+                    <div class="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-gray-600 dark:text-gray-400">Sohbetler yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Generation Modal (Existing) -->
+<div id="videoModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeVideoModal()"></div>
+    
+    <div class="relative h-full flex items-center justify-center p-4">
+        <div class="glass-effect rounded-3xl border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-white/20">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">Videolu Çözüm Oluştur</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Sohbetinizi video çözümüne dönüştürün</p>
+                    </div>
+                </div>
+                <button onclick="closeVideoModal()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-3 flex items-center space-x-2">
+                        <span>💬</span>
+                        <span>Sohbet Özeti</span>
+                    </h4>
+                    <div id="chatSummary" class="space-y-3 max-h-40 overflow-y-auto custom-scrollbar">
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 dark:text-white mb-3 flex items-center space-x-2">
+                            <span>🎬</span>
+                            <span>Video Stili</span>
+                        </h4>
+                        <div class="space-y-3">
+                            <label class="flex items-center space-x-3 p-3 glass-effect rounded-xl cursor-pointer hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors">
+                                <input type="radio" name="videoStyle" value="animated" class="text-pink-500 focus:ring-pink-500" checked>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-2xl">🎨</span>
+                                    <div>
+                                        <p class="font-medium text-gray-800 dark:text-white">Animasyonlu</p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Çizimli ve renkli animasyonlar</p>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-3 p-3 glass-effect rounded-xl cursor-pointer hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors">
+                                <input type="radio" name="videoStyle" value="whiteboard" class="text-pink-500 focus:ring-pink-500">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-2xl">📝</span>
+                                    <div>
+                                        <p class="font-medium text-gray-800 dark:text-white">Tahta Üzerinde</p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Klasik beyaz tahta stili</p>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-3 p-3 glass-effect rounded-xl cursor-pointer hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors">
+                                <input type="radio" name="videoStyle" value="modern" class="text-pink-500 focus:ring-pink-500">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-2xl">💻</span>
+                                    <div>
+                                        <p class="font-medium text-gray-800 dark:text-white">Modern UI</p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Sleek dijital tasarım</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-800 dark:text-white mb-3 flex items-center space-x-2">
+                            <span>⚙️</span>
+                            <span>Video Ayarları</span>
+                        </h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Süresi</label>
+                                <select class="w-full px-3 py-2 glass-effect rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                                    <option value="short">Kısa (1-2 dakika)</option>
+                                    <option value="medium" selected>Orta (3-5 dakika)</option>
+                                    <option value="long">Uzun (6-10 dakika)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ses Efektleri</label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="rounded border-gray-300 text-pink-600 focus:ring-pink-500" checked>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">Arka plan müziği ekle</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Açıklama Hızı</label>
+                                <select class="w-full px-3 py-2 glass-effect rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                                    <option value="slow">Yavaş</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="fast">Hızlı</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between p-6 border-t border-white/20">
+                <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span>Video oluşturma süresi: ~30-60 saniye</span>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="closeVideoModal()" class="px-6 py-3 glass-effect rounded-xl hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors text-gray-700 dark:text-gray-300">
+                        İptal
+                    </button>
+                    <button onclick="generateVideo()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                        </svg>
+                        <span>Video Oluştur</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: YouTube Video Suggestions Modal -->
+<div id="videoSuggestionsModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeVideoSuggestions()"></div>
+    
+    <div class="relative h-full flex items-center justify-center p-4">
+        <div class="glass-effect rounded-3xl border border-white/20 max-w-4xl w-full max-h-[85vh] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-red-50/50 to-pink-50/50 dark:from-red-900/20 dark:to-pink-900/20">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-gradient-to-r from-red-500 to-red-600 rounded-xl shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center space-x-2">
+                            <span>📺 İlgili Video Önerileri</span>
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Bu konuyla ilgili öğretici videolar</p>
+                    </div>
+                </div>
+                <button onclick="closeVideoSuggestions()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal Content -->
+            <div class="p-6 overflow-y-auto max-h-[65vh] custom-scrollbar">
+                <div class="mb-6">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">AI tarafından önerilen eğitim videoları</span>
+                    </div>
+                </div>
+                
+                <!-- Video Suggestions Grid -->
+                <div class="grid gap-6">
+                    <!-- Video 1 -->
+                    <div class="group glass-effect rounded-2xl p-4 border border-white/10 hover:border-red-200 dark:hover:border-red-800 transition-all duration-300 transform hover:scale-102 cursor-pointer" onclick="playVideo('video1')">
+                        <div class="flex space-x-4">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-32 h-20 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center relative overflow-hidden">
+                                    <!-- Video Thumbnail Background -->
+                                    <div class="absolute inset-0 bg-black/20"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-br from-red-500/30 to-purple-500/30"></div>
+                                    
+                                    <!-- Play Button -->
+                                    <div class="relative z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors shadow-lg">
+                                        <svg class="w-4 h-4 text-red-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <!-- Duration Badge -->
+                                    <div class="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/70 text-white text-xs rounded font-medium">
+                                        12:34
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                    Matematik Temelleri: Cebir ve Denklemler
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                                    Bu videoda cebir temellerini ve denklem çözme yöntemlerini öğreneceksiniz. Adım adım açıklamalarla...
+                                </p>
+                                <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="flex items-center space-x-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>1.2M</span>
+                                    </span>
+                                    <span>•</span>
+                                    <span>Matematik Akademi</span>
+                                    <span>•</span>
+                                    <span>3 ay önce</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Video 2 -->
+                    <div class="group glass-effect rounded-2xl p-4 border border-white/10 hover:border-red-200 dark:hover:border-red-800 transition-all duration-300 transform hover:scale-102 cursor-pointer" onclick="playVideo('video2')">
+                        <div class="flex space-x-4">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-32 h-20 bg-gradient-to-br from-blue-400 to-purple-600 rounded-xl flex items-center justify-center relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-black/20"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-500/30"></div>
+                                    
+                                    <div class="relative z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors shadow-lg">
+                                        <svg class="w-4 h-4 text-red-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/70 text-white text-xs rounded font-medium">
+                                        8:45
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                    Problem Çözme Teknikleri ve Stratejileri
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                                    Matematik problemlerini sistemli bir şekilde çözme yöntemleri ve pratik ipuçları...
+                                </p>
+                                <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="flex items-center space-x-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>854K</span>
+                                    </span>
+                                    <span>•</span>
+                                    <span>EğitimTV</span>
+                                    <span>•</span>
+                                    <span>1 hafta önce</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Video 3 -->
+                    <div class="group glass-effect rounded-2xl p-4 border border-white/10 hover:border-red-200 dark:hover:border-red-800 transition-all duration-300 transform hover:scale-102 cursor-pointer" onclick="playVideo('video3')">
+                        <div class="flex space-x-4">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-32 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-black/20"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-br from-green-500/30 to-teal-500/30"></div>
+                                    
+                                    <div class="relative z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors shadow-lg">
+                                        <svg class="w-4 h-4 text-red-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/70 text-white text-xs rounded font-medium">
+                                        15:22
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                    Uygulamalı Matematik: Günlük Hayat Örnekleri
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                                    Matematiği günlük hayatta nasıl kullandığımızı gösteren pratik örnekler ve uygulamalar...
+                                </p>
+                                <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="flex items-center space-x-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>675K</span>
+                                    </span>
+                                    <span>•</span>
+                                    <span>Hayat Matematikçisi</span>
+                                    <span>•</span>
+                                    <span>2 gün önce</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Info -->
+                <div class="mt-6 p-4 bg-gradient-to-r from-red-50/50 to-pink-50/50 dark:from-red-900/20 dark:to-pink-900/20 rounded-xl border border-red-200/50 dark:border-red-800/50">
+                    <div class="flex items-start space-x-3">
+                        <div class="p-2 bg-red-500/20 rounded-lg">
+                            <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-red-800 dark:text-red-200 mb-1">💡 Video Önerileri Hakkında</h4>
+                            <p class="text-sm text-red-700 dark:text-red-300 leading-relaxed">
+                                Bu videolar AI tarafından sohbetinizin içeriğine göre önerilmiştir. 
+                                Konuyu daha iyi anlamak için izleyebilir ve notlar alabilirsiniz.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-between p-6 border-t border-white/20">
+                <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span>AI destekli video önerileri</span>
+                </div>
+                <button onclick="closeVideoSuggestions()" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Kapat</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const messageForm = document.getElementById('messageForm');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const chatArea = document.getElementById('chatArea');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const charCounter = document.getElementById('charCounter');
+    const sendingAnimation = document.getElementById('sendingAnimation');
+    const newChatBtn = document.getElementById('newChatBtn');
+    let currentVideoMessageId = null;
+    let currentVideoSuggestionMessageId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        animateExistingMessages();
+        setTimeout(scrollToBottom, 500);
+        setTimeout(() => messageInput.focus(), 800);
+    });
+
+    function animateExistingMessages() {
+        const messages = document.querySelectorAll('.message-container');
+        messages.forEach((message, index) => {
+            setTimeout(() => {
+                message.style.opacity = '1';
+                message.style.transform = 'translateY(0)';
+                message.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+            }, index * 100);
+        });
+    }
+
+    messageInput.addEventListener('input', function() {
+        const length = this.value.length;
+        const maxLength = 500;
+        charCounter.textContent = `${length}/${maxLength}`;
+        
+        if (length > maxLength * 0.8) {
+            charCounter.classList.add('text-red-500');
+        } else {
+            charCounter.classList.remove('text-red-500');
+        }
+        
+        updateSendButton();
+    });
+
+    function updateSendButton() {
+        const hasText = messageInput.value.trim().length > 0;
+        sendButton.disabled = !hasText;
+        
+        if (hasText) {
+            sendButton.className = 'px-8 py-4 gradient-bg text-white rounded-2xl hover:shadow-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2 relative overflow-hidden';
+        } else {
+            sendButton.className = 'px-8 py-4 bg-gray-300 text-gray-500 rounded-2xl cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-lg relative overflow-hidden';
+        }
+    }
+
+    function startNewChat() {
+        newChatBtn.disabled = true;
+        newChatBtn.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Yeni Oturum...</span>
+            </div>
+        `;
+
+        fetch('{% url "core:chat" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                action: 'new_chat'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.action === 'new_chat') {
+                showNotification('Yeni sohbet başlatıldı! 🎉', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Yeni sohbet başlatılırken hata oluştu.', 'error');
+            newChatBtn.disabled = false;
+            newChatBtn.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>Yeni Sohbet</span>
+            `;
+        });
+    }
+
+    function showChatSessions() {
+        const modal = document.getElementById('chatSessionsModal');
+        const container = document.getElementById('sessionsListContainer');
+        
+        modal.classList.remove('hidden');
+        
+        fetch('/core/chat/sessions/', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const sessionElements = doc.querySelectorAll('.glass-effect');
+            
+            if (sessionElements.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4 opacity-50">💬</div>
+                        <h4 class="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">Henüz sohbet bulunmuyor</h4>
+                        <p class="text-gray-500 dark:text-gray-500">İlk sohbetinizi başlatın</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="space-y-4">
+                    ${Array.from(sessionElements).slice(1).map((element, index) => {
+                        const title = element.querySelector('h3')?.textContent || `Oturum ${index + 1}`;
+                        const details = element.querySelector('.text-sm')?.textContent || '';
+                        const isActive = element.textContent.includes('Aktif');
+                        
+                        return `
+                            <div class="p-4 glass-effect rounded-xl border border-white/10 hover:border-pink-200 dark:hover:border-pink-800 transition-all duration-300 cursor-pointer transform hover:scale-102" onclick="loadChatSession(${index + 1})">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 ${isActive ? 'bg-green-500/20' : 'bg-gray-500/20'} rounded-lg">
+                                            <svg class="w-4 h-4 ${isActive ? 'text-green-600' : 'text-gray-600'}" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-gray-900 dark:text-white">${title}</h4>
+                                            <p class="text-xs text-gray-600 dark:text-gray-400">${details}</p>
+                                        </div>
+                                    </div>
+                                    ${isActive ? `
+                                        <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-xs font-medium">
+                                            Aktif
+                                        </span>
+                                    ` : `
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        })
+        .catch(error => {
+            console.error('Error loading sessions:', error);
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="text-red-500 mb-4">❌</div>
+                    <p class="text-gray-600 dark:text-gray-400">Sohbetler yüklenirken hata oluştu</p>
+                </div>
+            `;
+        });
+    }
+
+    function closeChatSessions() {
+        const modal = document.getElementById('chatSessionsModal');
+        modal.classList.add('hidden');
+    }
+
+    function loadChatSession(sessionId) {
+        fetch(`/core/chat/session/${sessionId}/load/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeChatSessions();
+                showNotification('Sohbet yüklendi! 🔄', 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Sohbet yüklenirken hata oluştu.', 'error');
+        });
+    }
+
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendMessage();
+    });
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    function startStreamResponse(sessionId) {
+        const lastMessage = messageInput.getAttribute('data-last-message');
+        
+        if (!lastMessage) {
+            hideTypingIndicator();
+            sendingAnimation.style.opacity = '0';
+            sendButton.disabled = false;
+            return;
+        }
+        
+        fetch('{% url "core:chat_stream" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                message: lastMessage,
+                session_id: sessionId
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let botMessage = '';
+            let botMessageElement = null;
+
+            function readStream() {
+                return reader.read().then(({ done, value }) => {
+                    if (done) {
+                        hideTypingIndicator();
+                        sendingAnimation.style.opacity = '0';
+                        sendButton.disabled = false;
+                        return;
+                    }
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (let line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                
+                                if (data.error) {
+                                    hideTypingIndicator();
+                                    if (!botMessageElement) {
+                                        addMessageToChat(data.message || 'Bir hata oluştu.', true);
+                                    } else {
+                                        updateBotMessage(botMessageElement, data.message || 'Bir hata oluştu.');
+                                    }
+                                    sendingAnimation.style.opacity = '0';
+                                    sendButton.disabled = false;
+                                    return;
+                                }
+                                
+                                if (data.chunk) {
+                                    if (!botMessageElement) {
+                                        hideTypingIndicator();
+                                        botMessageElement = createBotMessageElement();
+                                        messagesContainer.appendChild(botMessageElement);
+                                    }
+                                    
+                                    botMessage += data.chunk;
+                                    updateBotMessage(botMessageElement, botMessage);
+                                    scrollToBottom();
+                                }
+                                
+                                if (data.done) {
+                                    hideTypingIndicator();
+                                    sendingAnimation.style.opacity = '0';
+                                    sendButton.disabled = false;
+                                    return;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e, line);
+                            }
+                        }
+                    }
+
+                    return readStream();
+                });
+            }
+
+            return readStream();
+        })
+        .catch(error => {
+            console.error('Stream error:', error);
+            hideTypingIndicator();
+            sendingAnimation.style.opacity = '0';
+            sendButton.disabled = false;
+            
+            if (error.message.includes('500')) {
+                addMessageToChat('Sunucu hatası oluştu. API anahtarını kontrol edin. 🔧', true);
+            } else if (error.message.includes('404')) {
+                addMessageToChat('Service bulunamadı. URL kontrol edin. 📡', true);
+            } else {
+                addMessageToChat('Bağlantı hatası oluştu. İnternet bağlantınızı kontrol edin. 📡', true);
+            }
+        });
+    }
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        sendingAnimation.style.opacity = '1';
+        sendButton.disabled = true;
+
+        addMessageToChat(message, false);
+        
+        messageInput.value = '';
+        charCounter.textContent = '0/500';
+        messageInput.setAttribute('data-last-message', message);
+        updateSendButton();
+        
+        showTypingIndicator();
+        
+        fetch('{% url "core:chat" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                action: 'send_message',
+                message: message
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.action === 'send_message') {
+                setTimeout(() => {
+                    startStreamResponse(data.session_id);
+                }, 500);
+            } else {
+                hideTypingIndicator();
+                sendingAnimation.style.opacity = '0';
+                sendButton.disabled = false;
+                addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin.', true);
+            }
+        })
+        .catch(error => {
+            console.error('Send message error:', error);
+            hideTypingIndicator();
+            sendingAnimation.style.opacity = '0';
+            sendButton.disabled = false;
+            addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin. 📤', true);
+        });
+    }
+
+    function createBotMessageElement() {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex justify-start message-container';
+        messageDiv.style.opacity = '0';
+        
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        const messageId = 'bot_' + Date.now();
+        
+        messageDiv.setAttribute('data-message-id', messageId);
+        messageDiv.innerHTML = `
+            <div class="max-w-xs lg:max-w-md group relative">
+                <div class="px-6 py-4 rounded-2xl transform transition-all duration-200 hover:scale-105 shadow-lg glass-effect border border-white/20 dark:border-gray-600/30 text-gray-800 dark:text-gray-100">
+                    <div class="flex items-start space-x-3 mb-2">
+                        <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-sm font-bold">AI</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">BinaryGirls AI</p>
+                            <div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span>Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm leading-relaxed message-content"></p>
+                    <div class="flex items-center justify-between mt-3">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${time}</p>
+                    </div>
+                    <div class="flex justify-end mt-3">
+                        <button onclick="showVideoSuggestions('${messageId}')" class="youtube-suggestion-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 transform hover:scale-110 group/youtube" title="İlgili video önerileri">
+                            <svg class="w-4 h-4 group-hover/youtube:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0)';
+            messageDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        }, 100);
+        
+        return messageDiv;
+    }
+
+    function updateBotMessage(element, message) {
+        const messageContent = element.querySelector('.message-content');
+        if (messageContent) {
+            messageContent.textContent = message;
+        }
+    }
+
+    function sendSuggestedMessage(message) {
+        messageInput.value = message;
+        messageInput.setAttribute('data-last-message', message);
+        messageInput.dispatchEvent(new Event('input'));
+        sendMessage();
+    }
+
+    function addMessageToChat(message, isBot) {
+        const messageDiv = document.createElement('div');
+        const messageId = Date.now();
+        messageDiv.className = `flex ${isBot ? 'justify-start' : 'justify-end'} message-container`;
+        messageDiv.setAttribute('data-message-id', messageId);
+        messageDiv.style.opacity = '0';
+        
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        
+        const videoButton = `
+            <div class="absolute -top-2 -right-2 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100">
+                <button onclick="openVideoModal(${messageId})" class="video-trigger-btn p-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 relative" title="Buraya kadar olanı videolu çözüm oluştur">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                    </svg>
+                    <div class="absolute inset-0 rounded-full bg-purple-400 animate-ping opacity-75"></div>
+                </button>
+            </div>
+        `;
+        
+        const botAvatarSection = isBot ? `
+            <div class="flex items-start space-x-3 mb-2">
+                <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold">AI</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium">BinaryGirls AI</p>
+                    <div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>Aktif</span>
+                    </div>
+                </div>
+            </div>
+        ` : '';
+        
+        const statusIcon = !isBot ? `
+            <div class="flex items-center space-x-1">
+                <svg class="w-4 h-4 text-pink-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+        ` : '';
+
+        const youtubeButton = isBot ? `
+            <div class="flex justify-end mt-3">
+                <button onclick="showVideoSuggestions('${messageId}')" class="youtube-suggestion-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 transform hover:scale-110 group/youtube" title="İlgili video önerileri">
+                    <svg class="w-4 h-4 group-hover/youtube:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                </button>
+            </div>
+        ` : '';
+        
+        messageDiv.innerHTML = `
+            <div class="max-w-xs lg:max-w-md group relative">
+                ${videoButton}
+                <div class="px-6 py-4 rounded-2xl transform transition-all duration-200 hover:scale-105 shadow-lg ${
+                    isBot 
+                        ? 'glass-effect border border-white/20 dark:border-gray-600/30 text-gray-800 dark:text-gray-100'
+                        : 'gradient-bg text-white shadow-pink-500/25'
+                }">
+                    ${botAvatarSection}
+                    <p class="text-sm leading-relaxed message-content">${message}</p>
+                    <div class="flex items-center justify-between mt-3">
+                        <p class="text-xs ${isBot ? 'text-gray-500 dark:text-gray-400' : 'text-pink-100'}">
+                            ${time}
+                        </p>
+                        ${statusIcon}
+                    </div>
+                    ${youtubeButton}
+                </div>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0)';
+            messageDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        }, 100);
+        
+        messageInput.setAttribute('data-last-message', message);
+        scrollToBottom();
+    }
+
+    function showTypingIndicator() {
+        typingIndicator.classList.remove('hidden');
+        scrollToBottom();
+    }
+
+    function hideTypingIndicator() {
+        typingIndicator.classList.add('hidden');
+    }
+
+    function scrollToBottom() {
+        setTimeout(() => {
+            chatArea.scrollTo({
+                top: chatArea.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
+    }
+
+    // NEW: YouTube Video Suggestions Functions
+    function showVideoSuggestions(messageId) {
+        currentVideoSuggestionMessageId = messageId;
+        const modal = document.getElementById('videoSuggestionsModal');
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.glass-effect').style.transform = 'scale(1)';
+            modal.querySelector('.glass-effect').style.opacity = '1';
+        }, 10);
+    }
+
+    function closeVideoSuggestions() {
+        const modal = document.getElementById('videoSuggestionsModal');
+        modal.querySelector('.glass-effect').style.transform = 'scale(0.95)';
+        modal.querySelector('.glass-effect').style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function playVideo(videoId) {
+        // Simulate video opening
+        showNotification('Video açılıyor... 🎬', 'info');
+        
+        // Here you could open the video in a new tab/window
+        // or implement an embedded video player
+        setTimeout(() => {
+            closeVideoSuggestions();
+        }, 1000);
+    }
+
+    // Existing Video Generation Functions
+    function openVideoModal(messageId) {
+        currentVideoMessageId = messageId;
+        const modal = document.getElementById('videoModal');
+        const chatSummary = document.getElementById('chatSummary');
+        
+        const messages = getChatSummaryUpToMessage(messageId);
+        chatSummary.innerHTML = messages.map((msg, index) => `
+            <div class="flex items-start space-x-3 p-3 glass-effect rounded-lg border border-white/10">
+                <div class="w-6 h-6 ${msg.isBot ? 'bg-gradient-to-r from-pink-500 to-rose-500' : 'bg-blue-500'} rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-xs font-bold">${msg.isBot ? 'AI' : 'U'}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-gray-800 dark:text-white">${msg.content.length > 100 ? msg.content.substring(0, 100) + '...' : msg.content}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${msg.isBot ? 'AI Yanıtı' : 'Kullanıcı Mesajı'}</p>
+                </div>
+            </div>
+        `).join('');
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.glass-effect').style.transform = 'scale(1)';
+            modal.querySelector('.glass-effect').style.opacity = '1';
+        }, 10);
+    }
+
+    function closeVideoModal() {
+        const modal = document.getElementById('videoModal');
+        modal.querySelector('.glass-effect').style.transform = 'scale(0.95)';
+        modal.querySelector('.glass-effect').style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function getChatSummaryUpToMessage(messageId) {
+        const messageElements = document.querySelectorAll('.message-container');
+        const messages = [];
+        
+        for (let element of messageElements) {
+            const id = element.getAttribute('data-message-id');
+            const content = element.querySelector('.message-content').textContent;
+            const isBot = element.querySelector('.gradient-bg') === null;
+            
+            messages.push({
+                id: id,
+                content: content,
+                isBot: isBot
+            });
+            
+            if (id == messageId) break;
+        }
+        
+        return messages;
+    }
+
+    function generateVideo() {
+        const modal = document.getElementById('videoModal');
+        const generateBtn = modal.querySelector('button[onclick="generateVideo()"]');
+        const originalText = generateBtn.innerHTML;
+        
+        generateBtn.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Video Oluşturuluyor...</span>
+            </div>
+        `;
+        generateBtn.disabled = true;
+        
+        setTimeout(() => {
+            showNotification('Video başarıyla oluşturuldu! 🎬', 'success');
+            closeVideoModal();
+            generateBtn.innerHTML = originalText;
+            generateBtn.disabled = false;
+            addVideoToChat();
+        }, 3000);
+    }
+
+    function addVideoToChat() {
+        const videoMessage = `
+            <div class="flex justify-start">
+                <div class="max-w-md group">
+                    <div class="glass-effect rounded-2xl border border-white/20 p-4 space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white">Videolu Çözüm Hazır! 🎬</h4>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">Sohbetiniz video çözümüne dönüştürüldü</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-900 rounded-xl p-4 relative">
+                            <div class="aspect-video bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg flex items-center justify-center">
+                                <button class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                                    <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">4:32</div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded-full text-xs font-medium">
+                                    📥 İndir
+                                </button>
+                                <button class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium">
+                                    🔗 Paylaş
+                                </button>
+                            </div>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        messagesContainer.insertAdjacentHTML('beforeend', videoMessage);
+        scrollToBottom();
+    }
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-xl glass-effect border transition-all duration-300 transform translate-x-full`;
+        
+        const colors = {
+            success: 'border-green-500/50 text-green-700 dark:text-green-300',
+            error: 'border-red-500/50 text-red-700 dark:text-red-300',
+            info: 'border-blue-500/50 text-blue-700 dark:text-blue-300'
+        };
+        
+        notification.className += ` ${colors[type] || colors.info}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.classList.remove('translate-x-full'), 100);
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            addMessageToChat(`📎 ${file.name} (${fileSize} MB) dosyası yüklendi`, false);
+            showNotification('Dosya başarıyla yüklendi!', 'success');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const modals = ['videoModal', 'chatSessionsModal', 'videoSuggestionsModal'];
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                const modalContent = modal.querySelector('.glass-effect');
+                if (modalContent) {
+                    modalContent.style.transform = 'scale(0.95)';
+                    modalContent.style.opacity = '0';
+                    modalContent.style.transition = 'all 0.3s ease-out';
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #ec4899, #f43f5e);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #db2777, #e11d48);
+}
+
+.video-trigger-btn {
+    box-shadow: 0 4px 20px rgba(147, 51, 234, 0.3);
+}
+
+.video-trigger-btn:hover {
+    box-shadow: 0 8px 25px rgba(147, 51, 234, 0.4);
+}
+
+.youtube-suggestion-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.youtube-suggestion-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.youtube-suggestion-btn:hover::before {
+    left: 100%;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.hover\:scale-102:hover {
+    transform: scale(1.02);
+}
+
+.message-container {
+    transform: translateY(20px);
+}
+
+/* YouTube button pulse animation */
+@keyframes youtube-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+}
+
+.youtube-suggestion-btn:hover {
+    animation: youtube-pulse 1.5s infinite;
+}
+
+/* Video modal enhancements */
+.video-suggestions-modal .glass-effect {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+}
+
+.dark .video-suggestions-modal .glass-effect {
+    background: rgba(31, 41, 55, 0.95);
+}
+
+/* Enhanced hover effects for video suggestions */
+.video-suggestion-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dark .video-suggestion-item:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+    .message-container .video-trigger-btn {
+        opacity: 1;
+        transform: scale(0.8);
+    }
+    
+    .youtube-suggestion-btn {
+        opacity: 1 !important;
+        transform: scale(0.9);
+    }
+    
+    .modal .glass-effect {
+        margin: 1rem;
+        max-height: 95vh;
+    }
+    
+    .video-suggestions-modal .glass-effect {
+        margin: 0.5rem;
+        max-height: 90vh;
+    }
+    
+    .video-suggestion-item {
+        padding: 1rem;
+    }
+    
+    .video-suggestion-item .flex {
+        flex-direction: column;
+        space-x: 0;
+        gap: 1rem;
+    }
+    
+    .video-suggestion-item .video-thumbnail {
+        width: 100%;
+        height: 150px;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .youtube-suggestion-btn:hover {
+        animation: none;
+    }
+    
+    .video-trigger-btn .animate-ping {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .youtube-suggestion-btn {
+        border: 2px solid currentColor;
+    }
+    
+    .video-suggestion-item {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Focus states for keyboard navigation */
+.youtube-suggestion-btn:focus {
+    outline: 2px solid #ef4444;
+    outline-offset: 2px;
+}
+
+.video-suggestion-item:focus {
+    outline: 2px solid #ef4444;
+    outline-offset: 2px;
+    border-radius: 1rem;
+}
+
+/* Loading states */
+.video-loading {
+    position: relative;
+}
+
+.video-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid #ef4444;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Enhanced glass effect for video modals */
+.video-suggestions-modal .glass-effect {
+    backdrop-filter: blur(16px) saturate(180%);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dark .video-suggestions-modal .glass-effect {
+    background: rgba(31, 41, 55, 0.9);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+</style>
+{% endblock %}

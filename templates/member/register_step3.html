@@ -1,0 +1,350 @@
+<!-- templates/member/register_step3.html -->
+
+{% extends 'base.html' %}
+
+{% block guest_content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-lg w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-sm font-medium text-pink-600">Adım 3/4</span>
+                <span class="text-sm text-gray-500">Kişiselleştirme</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-500" style="width: 75%"></div>
+            </div>
+        </div>
+
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+                <span class="text-white font-bold text-2xl">🎨</span>
+            </div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent mb-2">
+                Profilinizi Tamamlayın
+            </h1>
+            <p class="text-gray-600">Son birkaç detay ile hesabınızı kişiselleştirin</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+            <form method="post" enctype="multipart/form-data" class="space-y-6" id="step3Form">
+                {% csrf_token %}
+                
+                <!-- Avatar Upload -->
+                <div class="text-center">
+                    <div class="relative inline-block">
+                        <div id="avatarPreview" class="w-24 h-24 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg cursor-pointer transition-transform hover:scale-105" onclick="document.getElementById('{{ form.avatar.id_for_label }}').click()">
+                            <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <button type="button" class="absolute bottom-0 right-0 bg-pink-500 text-white rounded-full p-2 hover:bg-pink-600 transition-colors shadow-lg transform hover:scale-110" onclick="document.getElementById('{{ form.avatar.id_for_label }}').click()">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {{ form.avatar }}
+                    <p class="text-sm text-gray-500">Profil fotoğrafınızı seçin (isteğe bağlı)</p>
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Cinsiyet</label>
+                    <div class="grid grid-cols-3 gap-3" id="genderOptions">
+                        {% for value, label in form.gender.field.choices %}
+                            <label class="relative gender-option">
+                                <input type="radio" name="gender" value="{{ value }}" class="sr-only peer" {% if value == 'female' %}checked{% endif %}>
+                                <div class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-pink-500 peer-checked:bg-pink-50 transition-all duration-200 cursor-pointer hover:border-pink-300 text-center hover:scale-105">
+                                    <div class="text-2xl mb-2">
+                                        {% if value == 'female' %}👩{% elif value == 'male' %}👨{% else %}🧑{% endif %}
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">{{ label }}</span>
+                                </div>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Birth Date -->
+                <div>
+                    <label for="{{ form.birth_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Doğum Tarihi (isteğe bağlı)
+                    </label>
+                    {{ form.birth_date }}
+                    <p class="text-xs text-gray-500 mt-1">Bu bilgi yaş gruplarına göre içerik önerisi için kullanılır</p>
+                    {% if form.birth_date.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.birth_date.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Privacy Info -->
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="text-green-500 mt-0.5">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-green-800 mb-1">Gizlilik Garantisi</h4>
+                            <p class="text-sm text-green-700">Kişisel bilgileriniz güvenle saklanır ve hiçbir şekilde üçüncü kişilerle paylaşılmaz.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between pt-4">
+                    <a href="{% url 'member:register_step2' %}" id="backBtn" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        <span>Önceki</span>
+                    </a>
+                    
+                    <button type="submit" id="nextBtn" class="px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                        <span>Devam Et</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js CDN for Avatar System -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+<!-- Avatar System -->
+<script src="{% load static %}{% static 'js/avatar-system.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get stored information from previous steps
+    const firstName = sessionStorage.getItem('registrationFirstName') || 'Kullanıcı';
+    const username = sessionStorage.getItem('registrationUsername') || 'kullanıcı';
+    
+    // Initialize Registration Step 3 Avatar Assistant
+    const registerAvatar = new GuestAvatarSystem('registerStep3Avatar', {
+        size: 130,
+        position: { bottom: '20px', right: '20px' },
+        messages: {
+            welcome: `Mükemmel ${firstName}! Şimdi profilinizi kişiselleştirme zamanı. Bu adım isteğe bağlı ama profilinizi daha kişisel hale getiriyor. Size rehberlik edeceğim!`,
+            tooltip: "Kayıt Rehberiniz | 3. Adım: Kişiselleştirme"
+        },
+        autoStart: true
+    });
+
+    // Form elements
+    const avatarInput = document.getElementById('{{ form.avatar.id_for_label }}');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const birthDateField = document.getElementById('{{ form.birth_date.id_for_label }}');
+    const genderOptions = document.querySelectorAll('input[name="gender"]');
+
+    // Avatar upload guidance
+    avatarPreview.addEventListener('click', function() {
+        registerAvatar.speak("Profil fotoğrafı yüklemek istiyorsanız buraya tıklayın. Bu tamamen isteğe bağlı, istediğiniz zaman değiştirebilirsiniz.", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    // Avatar preview functionality
+    avatarInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (file) {
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                registerAvatar.speak("Dosya boyutu çok büyük! Lütfen 5MB'dan küçük bir resim seçin.", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+                this.value = '';
+                return;
+            }
+            
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                registerAvatar.speak("Lütfen sadece resim dosyası seçin. JPEG, PNG veya GIF formatında olabilir.", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+                this.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarPreview.innerHTML = `<img src="${e.target.result}" class="w-24 h-24 rounded-full object-cover">`;
+                registerAvatar.speak("Harika! Fotoğrafınız yüklendi. Çok güzel görünüyor!", 
+                    { emotion: 'happy', animation: 'Rumba Dancing' });
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Gender selection guidance
+    genderOptions.forEach((option, index) => {
+        option.addEventListener('change', function() {
+            const selectedGender = this.value;
+            const genderNames = {
+                'female': 'Kadın',
+                'male': 'Erkek', 
+                'other': 'Diğer'
+            };
+            
+            registerAvatar.speak(`${genderNames[selectedGender]} seçeneğini belirttiniz. Bu bilgi size daha uygun içerik önermemize yardımcı olur.`, 
+                { emotion: 'smile', animation: 'Talking_1' });
+        });
+    });
+
+    // Birth date guidance
+    birthDateField.addEventListener('focus', function() {
+        registerAvatar.speak("Doğum tarihinizi girmek tamamen isteğe bağlı. Bu bilgi yaş grubunuza uygun eğitim içeriği önermemize yardımcı olur.", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    birthDateField.addEventListener('change', function() {
+        const birthDate = new Date(this.value);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        
+        if (age < 13) {
+            registerAvatar.speak("13 yaşından küçük kullanıcılar için özel güvenlik önlemlerimiz var. Ebeveyn iznine ihtiyacınız olabilir.", 
+                { emotion: 'thinking', animation: 'Standing Idle' });
+        } else if (age >= 13 && age < 18) {
+            registerAvatar.speak("Genç kullanıcılarımıza özel eğitim içerikleri sunuyoruz. Harika!", 
+                { emotion: 'happy', animation: 'Talking_1' });
+        } else if (age >= 18) {
+            registerAvatar.speak("Yetişkin kullanıcı olarak tüm özelliklerimize erişebilirsiniz!", 
+                { emotion: 'happy', animation: 'Talking_0' });
+        }
+    });
+
+    // Form submission
+    document.getElementById('step3Form').addEventListener('submit', function(e) {
+        const hasAvatar = avatarInput.files.length > 0;
+        const birthDate = birthDateField.value;
+        const selectedGender = document.querySelector('input[name="gender"]:checked')?.value;
+        
+        let message = "Profil bilgileriniz kaydediliyor! ";
+        if (hasAvatar) message += "Fotoğrafınızla birlikte ";
+        message += "Son adıma geçiyoruz. Neredeyse bitti!";
+        
+        registerAvatar.speak(message, 
+            { emotion: 'excited', animation: 'Rumba Dancing' });
+        
+        // Store profile info
+        sessionStorage.setItem('registrationGender', selectedGender || 'not_specified');
+        sessionStorage.setItem('registrationBirthDate', birthDate || '');
+        sessionStorage.setItem('registrationAvatar', hasAvatar ? 'uploaded' : 'default');
+    });
+
+    // Navigation
+    document.getElementById('backBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        registerAvatar.speak("Hesap bilgileri adımına geri dönüyorsunuz. Yönlendiriyorum.", 
+            { emotion: 'smile', animation: 'Talking_0', onComplete: () => {
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 800);
+            }});
+    });
+
+    // Avatar click interaction
+    setTimeout(() => {
+        if (registerAvatar.avatarAssistant) {
+            registerAvatar.avatarAssistant.addEventListener('click', function() {
+                const messages = [
+                    "Profil kişiselleştirmede size yardımcı olabilirim! Hangi konuda yardıma ihtiyacınız var?",
+                    "Fotoğraf yükleme veya kişisel bilgiler konusunda rehberlik edebilirim.",
+                    "Bu adımdaki tüm bilgiler isteğe bağlı. Rahat hissettiğiniz kadarını paylaşın!",
+                    "Üçüncü adımda her şey yolunda mı? Size nasıl yardımcı olabilirim?"
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                registerAvatar.speak(randomMessage, { emotion: 'happy', animation: 'Talking_1' });
+            });
+        }
+    }, 2000);
+
+    // Progress encouragement
+    let interactionCount = 0;
+    const trackInteractions = () => {
+        interactionCount++;
+        if (interactionCount === 1) {
+            registerAvatar.speak("Güzel! Profilinizi kişiselleştirmeye başladınız.", 
+                { emotion: 'smile', animation: 'Talking_0' });
+        } else if (interactionCount === 2) {
+            registerAvatar.speak("Harika gidiyor! Profil bilgileriniz şekilleniyor.", 
+                { emotion: 'happy', animation: 'Talking_1' });
+        }
+    };
+
+    // Add interaction tracking
+    [avatarInput, birthDateField].forEach(element => {
+        element.addEventListener('change', trackInteractions);
+    });
+
+    genderOptions.forEach(option => {
+        option.addEventListener('change', trackInteractions);
+    });
+
+    // Skip option guidance
+    setTimeout(() => {
+        registerAvatar.speak("Bu adımdaki tüm bilgiler isteğe bağlı. İstediğiniz kadarını doldurup devam edebilirsiniz!", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    }, 3000);
+
+    // Privacy info interaction
+    document.querySelector('.bg-green-50').addEventListener('click', function() {
+        registerAvatar.speak("Gizliliğiniz bizim için çok önemli! Tüm bilgileriniz güvenle saklanır ve kimseyle paylaşılmaz.", 
+            { emotion: 'smile', animation: 'Talking_1' });
+    });
+
+    // Idle reminder for this step
+    let idleTimer;
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            if (registerAvatar.isLoaded) {
+                registerAvatar.speak("Bu adımı tamamlamaya hazır mısınız? Bir sonraki adımda kayıt işleminizi bitireceğiz!", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+            }
+        }, 25000); // 25 seconds
+    }
+
+    ['mousedown', 'keypress', 'change'].forEach(event => {
+        document.addEventListener(event, resetIdleTimer, true);
+    });
+
+    resetIdleTimer();
+});
+</script>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 50%, #f3e8ff 75%, #ede9fe 100%);
+        background-attachment: fixed;
+    }
+    
+    .gender-option input:checked + div {
+        transform: scale(1.05);
+    }
+    
+    #avatarPreview:hover {
+        box-shadow: 0 10px 25px rgba(236, 72, 153, 0.3);
+    }
+    
+    #{{ form.birth_date.id_for_label }}:focus {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        transform: scale(1.02);
+    }
+</style>
+{% endblock %}

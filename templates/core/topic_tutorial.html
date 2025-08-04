@@ -1,0 +1,709 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Konu Anlatım{% endblock %}
+{% block page_description %}AI destekli konu anlatımları ve eğitim materyalleri{% endblock %}
+
+{% block content %}
+<div class="p-6 h-full overflow-y-auto custom-scrollbar">
+    <!-- Hero Section -->
+    <div class="mb-8 relative overflow-hidden">
+        <div class="glass-effect rounded-3xl p-8 relative">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full transform translate-x-16 -translate-y-16"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full transform -translate-x-8 translate-y-8"></div>
+                <div class="absolute top-1/2 left-1/2 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
+                            <span class="text-white text-2xl">🎓</span>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-800 dark:text-white">AI Eğitim Merkezi</h1>
+                            <p class="text-lg text-gray-600 dark:text-gray-300">PDF'lerinizi yükleyin, AI ile öğrenin</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-purple-500/20 rounded-lg">
+                                <span class="text-2xl">📚</span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Yüklenen PDF</p>
+                                <p class="text-xl font-bold text-gray-900 dark:text-white">24</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-blue-500/20 rounded-lg">
+                                <span class="text-2xl">🎬</span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Video Eğitim</p>
+                                <p class="text-xl font-bold text-gray-900 dark:text-white">12</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-green-500/20 rounded-lg">
+                                <span class="text-2xl">🔊</span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Sesli Eğitim</p>
+                                <p class="text-xl font-bold text-gray-900 dark:text-white">8</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/60 dark:bg-gray-800/60 rounded-xl p-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-orange-500/20 rounded-lg">
+                                <span class="text-2xl">📝</span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Metin Eğitim</p>
+                                <p class="text-xl font-bold text-gray-900 dark:text-white">18</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Left Column - PDF Upload -->
+        <div class="lg:col-span-2">
+            <div class="glass-effect rounded-2xl p-6 border border-white/20 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center space-x-2">
+                    <span>📄</span>
+                    <span>PDF Dosyalarınızı Yükleyin</span>
+                </h2>
+
+                <!-- Drag & Drop Area -->
+                <div id="dropZone" class="relative">
+                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 transition-all duration-300 hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-900/20">
+                        <div class="text-center">
+                            <div id="uploadIcon" class="mx-auto mb-4 transition-transform duration-300">
+                                <svg class="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                            </div>
+                            <div id="uploadText">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">PDF dosyalarını buraya sürükleyin</h3>
+                                <p class="text-gray-600 dark:text-gray-400 mb-4">veya</p>
+                                <label for="fileInput" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-105 cursor-pointer">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Dosya Seç
+                                </label>
+                                <input type="file" id="fileInput" class="hidden" multiple accept=".pdf" />
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">Maksimum 10MB, PDF formatı desteklenir</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Progress -->
+                    <div id="uploadProgress" class="hidden mt-4">
+                        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                            <div id="progressBar" class="bg-gradient-to-r from-purple-500 to-indigo-600 h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText" class="text-sm text-gray-600 dark:text-gray-400 mt-2">Yükleniyor...</p>
+                    </div>
+                </div>
+
+                <!-- Uploaded Files List -->
+                <div id="uploadedFiles" class="mt-6 space-y-3"></div>
+            </div>
+
+            <!-- Education Type Selection -->
+            <div class="glass-effect rounded-2xl p-6 border border-white/20">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center space-x-2">
+                    <span>🎯</span>
+                    <span>Eğitim Türü Seçin</span>
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Video Education -->
+                    <div class="education-type-card group cursor-pointer" data-type="video">
+                        <div class="glass-effect rounded-xl p-6 border border-white/20 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Video Eğitim</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Görsel animasyonlarla</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audio Education -->
+                    <div class="education-type-card group cursor-pointer" data-type="audio">
+                        <div class="glass-effect rounded-xl p-6 border border-white/20 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Sesli Eğitim</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Profesyonel anlatım</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Education -->
+                    <div class="education-type-card group cursor-pointer" data-type="text">
+                        <div class="glass-effect rounded-xl p-6 border border-white/20 hover:border-green-300 dark:hover:border-green-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Metin Eğitimi</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Detaylı açıklamalar</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Settings & Actions -->
+        <div class="lg:col-span-1">
+            <!-- Settings Panel -->
+            <div class="glass-effect rounded-2xl p-6 border border-white/20 mb-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+                    <span>⚙️</span>
+                    <span>Eğitim Ayarları</span>
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- Internet Search Toggle -->
+                    <div class="flex items-center justify-between p-3 glass-effect rounded-lg border border-white/10">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-blue-500/20 rounded-lg">
+                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900 dark:text-white text-sm">İnternet Araması</p>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">Güncel bilgileri dahil et</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="internetSearchToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Difficulty Level -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zorluk Seviyesi</label>
+                        <select id="difficultyLevel" class="w-full px-3 py-2 glass-effect rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white">
+                            <option value="beginner">Başlangıç</option>
+                            <option value="intermediate" selected>Orta</option>
+                            <option value="advanced">İleri</option>
+                        </select>
+                    </div>
+
+                    <!-- Language -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dil</label>
+                        <select id="language" class="w-full px-3 py-2 glass-effect rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white">
+                            <option value="tr" selected>Türkçe</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+
+                    <!-- Duration -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tahmini Süre</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="duration-btn px-3 py-2 text-sm glass-effect rounded-lg border border-white/20 hover:border-purple-300 dark:hover:border-purple-700 transition-all" data-duration="15">15dk</button>
+                            <button class="duration-btn px-3 py-2 text-sm glass-effect rounded-lg border border-white/20 hover:border-purple-300 dark:hover:border-purple-700 transition-all active" data-duration="30">30dk</button>
+                            <button class="duration-btn px-3 py-2 text-sm glass-effect rounded-lg border border-white/20 hover:border-purple-300 dark:hover:border-purple-700 transition-all" data-duration="45">45dk</button>
+                            <button class="duration-btn px-3 py-2 text-sm glass-effect rounded-lg border border-white/20 hover:border-purple-300 dark:hover:border-purple-700 transition-all" data-duration="60">60dk</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="glass-effect rounded-2xl p-6 border border-white/20">
+                <button id="generateEducation" class="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" disabled>
+                    <div class="flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span>AI Eğitim Oluştur</span>
+                    </div>
+                </button>
+                
+                <div class="mt-4 flex items-center justify-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span>AI destekli eğitim hazır</span>
+                </div>
+                
+                <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div class="flex items-start space-x-2">
+                        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-blue-800 dark:text-blue-300">Nasıl Çalışır?</p>
+                            <p class="text-xs text-blue-700 dark:text-blue-400 mt-1">PDF'lerinizi yükleyin, eğitim türünü seçin ve AI size özel eğitim içeriği oluştursun.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sessions -->
+    {% if user_recent_sessions %}
+    <div class="mt-8">
+        <div class="glass-effect rounded-2xl p-6 border border-white/20">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
+                    <span>🕒</span>
+                    <span>Son Eğitimleriniz</span>
+                </h2>
+                <a href="#" class="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                    Tümünü Gör →
+                </a>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for session in user_recent_sessions %}
+                <div class="flex items-center space-x-4 p-4 glass-effect rounded-xl border border-white/10 hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br 
+                        {% if session.education_type == 'video' %}from-purple-500 to-indigo-600
+                        {% elif session.education_type == 'audio' %}from-blue-500 to-cyan-600
+                        {% else %}from-green-500 to-emerald-600{% endif %} 
+                        rounded-xl flex items-center justify-center flex-shrink-0">
+                        {% if session.education_type == 'video' %}
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                        </svg>
+                        {% elif session.education_type == 'audio' %}
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z" clip-rule="evenodd"/>
+                        </svg>
+                        {% else %}
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-medium text-gray-900 dark:text-white truncate">{{ session.title }}</h4>
+                        <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                            <span>{{ session.created_at|timesince }} önce</span>
+                            <span class="px-2 py-1 
+                                {% if session.status == 'completed' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
+                                {% elif session.status == 'generating' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
+                                {% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %} 
+                                rounded-full text-xs">
+                                {% if session.status == 'completed' %}Hazır{% elif session.status == 'generating' %}Oluşturuluyor{% else %}Hata{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if session.status == 'completed' %}
+                    <a href="{% url 'core:education_session_detail' session.id %}" class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm flex-shrink-0">
+                        Aç
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+let uploadedFiles = [];
+let selectedEducationType = '';
+let selectedDuration = 30;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDragDrop();
+    initializeEducationTypeSelection();
+    initializeDurationSelection();
+    updateGenerateButton();
+});
+
+// Drag & Drop functionality
+function initializeDragDrop() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadIcon = document.getElementById('uploadIcon');
+    const uploadText = document.getElementById('uploadText');
+
+    // File input change
+    fileInput.addEventListener('change', handleFiles);
+
+    // Drag events
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-purple-400', 'bg-purple-50/50', 'dark:bg-purple-900/20');
+        uploadIcon.classList.add('scale-110');
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-purple-400', 'bg-purple-50/50', 'dark:bg-purple-900/20');
+        uploadIcon.classList.remove('scale-110');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-purple-400', 'bg-purple-50/50', 'dark:bg-purple-900/20');
+        uploadIcon.classList.remove('scale-110');
+        
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+        if (files.length > 0) {
+            handleFiles({ target: { files } });
+        }
+    });
+}
+
+// Handle file uploads
+function handleFiles(e) {
+    const files = Array.from(e.target.files);
+    const pdfFiles = files.filter(file => file.type === 'application/pdf');
+    
+    if (pdfFiles.length === 0) {
+        showNotification('Lütfen sadece PDF dosyaları yükleyin.', 'error');
+        return;
+    }
+
+    pdfFiles.forEach(file => {
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            showNotification(`${file.name} dosyası çok büyük. Maksimum 10MB olmalı.`, 'error');
+            return;
+        }
+        
+        uploadFile(file);
+    });
+}
+
+// Upload individual file
+function uploadFile(file) {
+    const fileId = Date.now() + Math.random();
+    
+    // Add to uploaded files list
+    uploadedFiles.push({
+        id: fileId,
+        name: file.name,
+        size: file.size,
+        file: file,
+        status: 'uploading'
+    });
+    
+    displayUploadedFiles();
+    simulateUpload(fileId);
+    updateGenerateButton();
+}
+
+// Simulate file upload (replace with actual upload logic)
+function simulateUpload(fileId) {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const uploadProgress = document.getElementById('uploadProgress');
+    
+    uploadProgress.classList.remove('hidden');
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress > 100) progress = 100;
+        
+        progressBar.style.width = progress + '%';
+        progressText.textContent = `Yükleniyor... ${Math.round(progress)}%`;
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                uploadProgress.classList.add('hidden');
+                
+                // Update file status
+                const fileIndex = uploadedFiles.findIndex(f => f.id === fileId);
+                if (fileIndex !== -1) {
+                    uploadedFiles[fileIndex].status = 'completed';
+                    displayUploadedFiles();
+                    updateGenerateButton();
+                }
+                
+                showNotification('Dosya başarıyla yüklendi!', 'success');
+            }, 500);
+        }
+    }, 200);
+}
+
+// Display uploaded files
+function displayUploadedFiles() {
+    const container = document.getElementById('uploadedFiles');
+    
+    if (uploadedFiles.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    container.innerHTML = uploadedFiles.map(file => `
+        <div class="flex items-center justify-between p-4 glass-effect rounded-xl border border-white/10">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-red-500/20 rounded-lg">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-900 dark:text-white">${file.name}</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">${formatFileSize(file.size)} • ${getStatusText(file.status)}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                ${file.status === 'completed' ? 
+                    '<div class="w-2 h-2 bg-green-400 rounded-full"></div>' :
+                    '<div class="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>'
+                }
+                <button onclick="removeFile(${file.id})" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Education type selection
+function initializeEducationTypeSelection() {
+    const cards = document.querySelectorAll('.education-type-card');
+    
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove previous selection
+            cards.forEach(c => {
+                c.classList.remove('selected');
+                c.querySelector('div').classList.remove('ring-2', 'ring-purple-500', 'dark:ring-purple-400');
+            });
+            
+            // Add selection to clicked card
+            this.classList.add('selected');
+            this.querySelector('div').classList.add('ring-2', 'ring-purple-500', 'dark:ring-purple-400');
+            
+            selectedEducationType = this.dataset.type;
+            updateGenerateButton();
+        });
+    });
+}
+
+// Duration selection
+function initializeDurationSelection() {
+    const buttons = document.querySelectorAll('.duration-btn');
+    
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove previous selection
+            buttons.forEach(b => {
+                b.classList.remove('active', 'bg-purple-500', 'text-white');
+                b.classList.add('text-gray-700', 'dark:text-gray-300');
+            });
+            
+            // Add selection to clicked button
+            this.classList.add('active', 'bg-purple-500', 'text-white');
+            this.classList.remove('text-gray-700', 'dark:text-gray-300');
+            
+            selectedDuration = parseInt(this.dataset.duration);
+        });
+    });
+}
+
+// Update generate button state
+function updateGenerateButton() {
+    const button = document.getElementById('generateEducation');
+    const hasFiles = uploadedFiles.some(file => file.status === 'completed');
+    const hasEducationType = selectedEducationType !== '';
+    
+    if (hasFiles && hasEducationType) {
+        button.disabled = false;
+        button.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        button.disabled = true;
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+// Generate education
+document.getElementById('generateEducation').addEventListener('click', function() {
+    if (this.disabled) return;
+    
+    const completedFiles = uploadedFiles.filter(file => file.status === 'completed');
+    const internetSearch = document.getElementById('internetSearchToggle').checked;
+    const difficulty = document.getElementById('difficultyLevel').value;
+    const language = document.getElementById('language').value;
+    
+    const settings = {
+        files: completedFiles.map(f => f.name),
+        educationType: selectedEducationType,
+        duration: selectedDuration,
+        internetSearch: internetSearch,
+        difficulty: difficulty,
+        language: language
+    };
+    
+    // Show loading state
+    const originalContent = this.innerHTML;
+    this.innerHTML = `
+        <div class="flex items-center justify-center space-x-2">
+            <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Eğitim Oluşturuluyor...</span>
+        </div>
+    `;
+    this.disabled = true;
+    
+    // Simulate API call (replace with actual implementation)
+    setTimeout(() => {
+        showNotification('Eğitim başarıyla oluşturuldu! Yönlendiriliyorsunuz...', 'success');
+        
+        setTimeout(() => {
+            // Replace with actual redirect
+            window.location.href = '/core/education/session/new/';
+        }, 2000);
+    }, 3000);
+});
+
+// Utility functions
+function removeFile(fileId) {
+    uploadedFiles = uploadedFiles.filter(file => file.id !== fileId);
+    displayUploadedFiles();
+    updateGenerateButton();
+    showNotification('Dosya kaldırıldı.', 'info');
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function getStatusText(status) {
+    const statusMap = {
+        'uploading': 'Yükleniyor',
+        'completed': 'Hazır',
+        'error': 'Hata'
+    };
+    return statusMap[status] || status;
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-xl glass-effect border transition-all duration-300 transform translate-x-full max-w-sm`;
+    
+    const colors = {
+        success: 'border-green-500/50 text-green-700 dark:text-green-300',
+        error: 'border-red-500/50 text-red-700 dark:text-red-300',
+        info: 'border-blue-500/50 text-blue-700 dark:text-blue-300'
+    };
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️'
+    };
+    
+    notification.className += ` ${colors[type] || colors.info}`;
+    notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <span>${icons[type] || icons.info}</span>
+            <span class="text-sm font-medium">${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.remove('translate-x-full'), 100);
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+</script>
+
+<style>
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.5);
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.7);
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .glass-effect {
+    background: rgba(17, 24, 39, 0.7);
+}
+
+.education-type-card.selected .glass-effect {
+    background: rgba(168, 85, 247, 0.1);
+}
+
+.duration-btn.active {
+    background: linear-gradient(to right, #8b5cf6, #6366f1) !important;
+    color: white !important;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
+{% endblock %}

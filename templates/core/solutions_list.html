@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Çözümler{% endblock %}
+{% block page_description %}AI destekli çözümler ve chat geçmişinizi keşfedin{% endblock %}
+
+{% block content %}
+<div class="p-6 h-full overflow-y-auto custom-scrollbar">
+    <!-- Enhanced Header with Chat Integration -->
+    <div class="mb-8">
+        <div class="glass-effect rounded-2xl p-6 border border-white/20">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">🧠 Çözümler & Chat Geçmişi</h1>
+                    <p class="text-gray-600 dark:text-gray-400">Hazır çözümler ve AI ile yaptığınız sohbetler</p>
+                </div>
+                <div class="flex space-x-3 mt-4 lg:mt-0">
+                    <a href="{% url 'core:chat_history' %}" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Chat Geçmişi</span>
+                    </a>
+                    <a href="{% url 'core:chat' %}" class="px-4 py-2 gradient-bg text-white rounded-lg hover:shadow-lg transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Yeni Sohbet</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Chat Stats Integration -->
+            {% if user_chat_stats.total_messages > 0 %}
+            <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user_chat_stats.total_messages }} chat mesajınız var</span>
+                    </div>
+                    {% if user_chat_stats.recent_topics %}
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Son konularınız:</span>
+                        {% for topic in user_chat_stats.recent_topics %}
+                        <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-xs">{{ topic }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Search and Filters -->
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Çözüm ara..." value="{{ search_query|default:'' }}" class="w-full pl-10 pr-4 py-3 glass-effect rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                </div>
+                <select id="difficultyFilter" class="px-4 py-3 glass-effect rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                    <option value="">Tüm Zorluklar</option>
+                    <option value="easy" {% if current_difficulty == 'easy' %}selected{% endif %}>Kolay</option>
+                    <option value="medium" {% if current_difficulty == 'medium' %}selected{% endif %}>Orta</option>
+                    <option value="hard" {% if current_difficulty == 'hard' %}selected{% endif %}>Zor</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid lg:grid-cols-4 gap-8">
+        <!-- Sidebar with Subjects and Chat Insights -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Subjects -->
+            <div class="glass-effect rounded-2xl p-6 border border-white/20">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+                    <span>📚</span>
+                    <span>Dersler</span>
+                </h3>
+                <div class="space-y-2">
+                    <a href="{% url 'core:solutions' %}" class="block p-3 rounded-xl transition-all duration-200 hover:bg-white/30 dark:hover:bg-gray-700/30 {% if not current_subject %}bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400{% endif %}">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium">Tüm Dersler</span>
+                            <span class="text-sm text-gray-500">{{ solutions.paginator.count }}</span>
+                        </div>
+                    </a>
+                    {% for subject in subjects %}
+                    <a href="{% url 'core:solutions_by_subject' subject.id %}" class="block p-3 rounded-xl transition-all duration-200 hover:bg-white/30 dark:hover:bg-gray-700/30 {% if current_subject == subject.id %}bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400{% endif %}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span>{{ subject.icon }}</span>
+                                <span class="font-medium">{{ subject.name }}</span>
+                            </div>
+                            <span class="text-sm text-gray-500">{{ subject.solution_count }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Chat Topics -->
+            {% if user_chat_stats.recent_topics %}
+            <div class="glass-effect rounded-2xl p-6 border border-white/20">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+                    <span>💭</span>
+                    <span>Son Chat Konularınız</span>
+                </h3>
+                <div class="space-y-3">
+                    {% for topic in user_chat_stats.recent_topics %}
+                    <div class="flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl">
+                        <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                            <span class="text-blue-600 dark:text-blue-400 text-sm">💬</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ topic }}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">Sohbet konusu</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <a href="{% url 'core:chat_history' %}" class="block text-center p-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                        Tüm Chat Geçmişini Gör →
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Chat Access -->
+            <div class="glass-effect rounded-2xl p-6 border border-white/20 bg-gradient-to-br from-pink-50/50 to-purple-50/50 dark:from-pink-900/10 dark:to-purple-900/10">
+                <div class="text-center">
+                    <div class="w-12 h-12 gradient-bg rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Sorunuz mu var?</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">AI asistanınız her zaman yardımcı olmaya hazır!</p>
+                    <a href="{% url 'core:chat' %}" class="px-4 py-2 gradient-bg text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium block">
+                        Hemen Sor
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solutions Grid -->
+        <div class="lg:col-span-3">
+            {% if solutions %}
+            <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {% for solution in solutions %}
+                <div class="glass-effect rounded-2xl p-6 border border-white/20 hover:border-pink-300 dark:hover:border-pink-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-pink-500/20 rounded-lg group-hover:bg-pink-500/30 transition-colors">
+                                <span class="text-xl">{{ solution.subject.icon }}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">{{ solution.title }}</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ solution.subject.name }}</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                            {% if solution.difficulty == 'easy' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
+                            {% elif solution.difficulty == 'medium' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
+                            {% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+                            {{ solution.get_difficulty_display }}
+                        </span>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{{ solution.description }}</p>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+                            <span class="flex items-center space-x-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>{{ solution.view_count }}</span>
+                            </span>
+                            <span class="flex items-center space-x-1">
+                                <svg class="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>{{ solution.like_count }}</span>
+                            </span>
+                        </div>
+                        <a href="{% url 'core:solution_detail' solution.id %}" class="px-3 py-1 gradient-bg text-white rounded-lg hover:shadow-lg transition-all duration-200 text-xs font-medium">
+                            İncele
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if solutions.has_other_pages %}
+            <div class="flex justify-center mt-8">
+                <nav class="flex space-x-2">
+                    {% if solutions.has_previous %}
+                    <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}" class="px-3 py-2 glass-effect rounded-lg hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors text-sm">İlk</a>
+                    <a href="?page={{ solutions.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}" class="px-3 py-2 glass-effect rounded-lg hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors text-sm">Önceki</a>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2 gradient-bg text-white rounded-lg text-sm">
+                        {{ solutions.number }} / {{ solutions.paginator.num_pages }}
+                    </span>
+                    
+                    {% if solutions.has_next %}
+                    <a href="?page={{ solutions.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}" class="px-3 py-2 glass-effect rounded-lg hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors text-sm">Sonraki</a>
+                    <a href="?page={{ solutions.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}" class="px-3 py-2 glass-effect rounded-lg hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors text-sm">Son</a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-16">
+                <div class="text-6xl mb-4 opacity-50">🔍</div>
+                <h3 class="text-xl font-medium text-gray-600 dark:text-gray-400 mb-2">Çözüm bulunamadı</h3>
+                <p class="text-gray-500 dark:text-gray-500 mb-6">Arama kriterlerinizi değiştirmeyi deneyin</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="{% url 'core:solutions' %}" class="px-6 py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-200">
+                        Tüm Çözümler
+                    </a>
+                    <a href="{% url 'core:chat' %}" class="px-6 py-3 glass-effect rounded-xl hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors border border-white/20">
+                        AI'ya Sor
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchValue = e.target.value;
+    const difficulty = document.getElementById('difficultyFilter').value;
+    
+    // Debounce search
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(() => {
+        const url = new URL(window.location);
+        if (searchValue) {
+            url.searchParams.set('search', searchValue);
+        } else {
+            url.searchParams.delete('search');
+        }
+        if (difficulty) {
+            url.searchParams.set('difficulty', difficulty);
+        } else {
+            url.searchParams.delete('difficulty');
+        }
+        url.searchParams.delete('page'); // Reset pagination
+        window.location.href = url.toString();
+    }, 500);
+});
+
+document.getElementById('difficultyFilter').addEventListener('change', function(e) {
+    const difficulty = e.target.value;
+    const search = document.getElementById('searchInput').value;
+    
+    const url = new URL(window.location);
+    if (difficulty) {
+        url.searchParams.set('difficulty', difficulty);
+    } else {
+        url.searchParams.delete('difficulty');
+    }
+    if (search) {
+        url.searchParams.set('search', search);
+    } else {
+        url.searchParams.delete('search');
+    }
+    url.searchParams.delete('page'); // Reset pagination
+    window.location.href = url.toString();
+});
+</script>
+
+<style>
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

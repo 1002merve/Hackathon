@@ -1,0 +1,478 @@
+<!-- templates/member/register_step2.html -->
+
+{% extends 'base.html' %}
+
+{% block guest_content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-lg w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-sm font-medium text-pink-600">Adım 2/4</span>
+                <span class="text-sm text-gray-500">Hesap Bilgileri</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-500" style="width: 50%"></div>
+            </div>
+        </div>
+
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+                <span class="text-white font-bold text-2xl">🔐</span>
+            </div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent mb-2">
+                Hesap Oluşturun
+            </h1>
+            <p class="text-gray-600">Kullanıcı adınızı ve güvenli bir şifre seçin</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+            <form method="post" class="space-y-6" id="step2Form">
+                {% csrf_token %}
+                
+                <!-- Username -->
+                <div class="relative">
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Kullanıcı Adı *
+                    </label>
+                    <div class="relative">
+                        {{ form.username }}
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <div class="w-5 h-5 text-gray-400" id="usernameCheck">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="usernameStatus" class="text-sm mt-1 hidden"></div>
+                    <p class="text-xs text-gray-500 mt-1">Sadece harf, rakam ve alt çizgi kullanabilirsiniz</p>
+                    {% if form.username.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.username.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password 1 -->
+                <div class="relative">
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Şifre *
+                    </label>
+                    <div class="relative">
+                        {{ form.password1 }}
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center" onclick="togglePassword('{{ form.password1.id_for_label }}', 'eyeIcon1')">
+                            <svg id="eyeIcon1" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="passwordStrength" class="mt-2">
+                        <div class="flex space-x-1">
+                            <div class="h-1 w-1/4 bg-gray-200 rounded" id="strength1"></div>
+                            <div class="h-1 w-1/4 bg-gray-200 rounded" id="strength2"></div>
+                            <div class="h-1 w-1/4 bg-gray-200 rounded" id="strength3"></div>
+                            <div class="h-1 w-1/4 bg-gray-200 rounded" id="strength4"></div>
+                        </div>
+                        <p id="strengthText" class="text-xs text-gray-500 mt-1">Şifre gücü</p>
+                    </div>
+                    {% if form.password1.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.password1.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password 2 -->
+                <div class="relative">
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Şifre Tekrarı *
+                    </label>
+                    <div class="relative">
+                        {{ form.password2 }}
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center" onclick="togglePassword('{{ form.password2.id_for_label }}', 'eyeIcon2')">
+                            <svg id="eyeIcon2" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="passwordMatch" class="text-sm mt-1 hidden"></div>
+                    {% if form.password2.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {% for error in form.password2.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password Requirements -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4" id="passwordRequirements">
+                    <h4 class="text-sm font-medium text-blue-800 mb-2">Şifre Gereksinimleri:</h4>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li id="req-length" class="flex items-center">
+                            <span class="w-4 h-4 mr-2">⭕</span>
+                            En az 8 karakter
+                        </li>
+                        <li id="req-upper" class="flex items-center">
+                            <span class="w-4 h-4 mr-2">⭕</span>
+                            En az 1 büyük harf
+                        </li>
+                        <li id="req-lower" class="flex items-center">
+                            <span class="w-4 h-4 mr-2">⭕</span>
+                            En az 1 küçük harf
+                        </li>
+                        <li id="req-number" class="flex items-center">
+                            <span class="w-4 h-4 mr-2">⭕</span>
+                            En az 1 rakam
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between pt-4">
+                    <a href="{% url 'member:register_step1' %}" id="backBtn" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        <span>Önceki</span>
+                    </a>
+                    
+                    <button type="submit" class="px-8 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed transition-all duration-200 flex items-center space-x-2" id="nextBtn" disabled>
+                        <span>Devam Et</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js CDN for Avatar System -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+<!-- Avatar System -->
+<script src="{% load static %}{% static 'js/avatar-system.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get stored name from previous step
+    const firstName = sessionStorage.getItem('registrationFirstName') || 'Kullanıcı';
+    
+    // Initialize Registration Step 2 Avatar Assistant
+    const registerAvatar = new GuestAvatarSystem('registerStep2Avatar', {
+        size: 130,
+        position: { bottom: '20px', right: '20px' },
+        messages: {
+            welcome: `Merhaba ${firstName}! İkinci adıma hoş geldiniz. Şimdi hesap bilgilerinizi oluşturacağız. Güvenli bir kullanıcı adı ve şifre seçmenizde size yardımcı olacağım.`,
+            tooltip: "Kayıt Rehberiniz | 2. Adım: Hesap Bilgileri"
+        },
+        autoStart: true
+    });
+
+    // Form elements
+    const usernameField = document.getElementById('{{ form.username.id_for_label }}');
+    const password1Field = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2Field = document.getElementById('{{ form.password2.id_for_label }}');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // Username validation
+    usernameField.addEventListener('focus', function() {
+        registerAvatar.speak("Kullanıcı adınızı seçin. Bu ad sizin kimliğiniz olacak. Sadece harf, rakam ve alt çizgi kullanabilirsiniz. En az 3 karakter olmalı.", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    usernameField.addEventListener('input', function() {
+        const username = this.value.trim();
+        const status = document.getElementById('usernameStatus');
+        
+        if (username.length > 0) {
+            if (username.length < 3) {
+                status.className = 'text-orange-600 text-sm mt-1';
+                status.textContent = '⚠️ En az 3 karakter olmalı';
+                status.classList.remove('hidden');
+            } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                status.className = 'text-red-600 text-sm mt-1';
+                status.textContent = '❌ Sadece harf, rakam ve alt çizgi kullanın';
+                status.classList.remove('hidden');
+            } else {
+                status.className = 'text-blue-600 text-sm mt-1';
+                status.textContent = '🔍 Kontrol ediliyor...';
+                status.classList.remove('hidden');
+                
+                // Check availability
+                setTimeout(() => {
+                    checkUsernameAvailability(username);
+                }, 500);
+            }
+        } else {
+            status.classList.add('hidden');
+        }
+        checkFormValidity();
+    });
+
+    function checkUsernameAvailability(username) {
+        fetch(`{% url 'member:check_username' %}?username=${encodeURIComponent(username)}`)
+            .then(response => response.json())
+            .then(data => {
+                const status = document.getElementById('usernameStatus');
+                const check = document.getElementById('usernameCheck');
+                
+                if (data.available) {
+                    status.className = 'text-green-600 text-sm mt-1';
+                    status.textContent = '✅ Kullanıcı adı kullanılabilir';
+                    check.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                    registerAvatar.speak("Harika! Bu kullanıcı adı kullanılabilir. Güzel bir seçim!", 
+                        { emotion: 'happy', animation: 'Talking_1' });
+                } else {
+                    status.className = 'text-red-600 text-sm mt-1';
+                    status.textContent = '❌ Bu kullanıcı adı zaten alınmış';
+                    check.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+                    registerAvatar.speak("Bu kullanıcı adı zaten alınmış. Başka bir tane deneyin. Belki rakam veya alt çizgi ekleyebilirsiniz.", 
+                        { emotion: 'thinking', animation: 'Standing Idle' });
+                }
+                checkFormValidity();
+            })
+            .catch(error => {
+                console.error('Username check failed:', error);
+            });
+    }
+
+    // Password guidance
+    password1Field.addEventListener('focus', function() {
+        registerAvatar.speak("Şimdi güvenli bir şifre oluşturalım. En az 8 karakter, büyük ve küçük harf, rakam içermeli. Ne kadar güçlü olursa o kadar güvenli olursunuz!", 
+            { emotion: 'smile', animation: 'Talking_0' });
+    });
+
+    password1Field.addEventListener('input', function() {
+        const password = this.value;
+        const strength = checkPasswordStrength(password);
+        updatePasswordStrengthUI(strength);
+        checkPasswordRequirements(password);
+        checkFormValidity();
+        
+        // Give feedback on password strength
+        if (password.length > 0) {
+            if (strength <= 1) {
+                registerAvatar.speak("Bu şifre çok zayıf. Daha güçlü bir şifre oluşturmaya çalışın.", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+            } else if (strength === 2) {
+                registerAvatar.speak("Şifre gücü artıyor! Biraz daha geliştirerek çok güvenli hale getirebiliriz.", 
+                    { emotion: 'smile', animation: 'Talking_1' });
+            } else if (strength >= 3) {
+                registerAvatar.speak("Harika! Bu çok güçlü bir şifre. Güvenliğiniz için mükemmel!", 
+                    { emotion: 'happy', animation: 'Rumba Dancing' });
+            }
+        }
+    });
+
+    password2Field.addEventListener('focus', function() {
+        registerAvatar.speak("Şimdi şifrenizi tekrar girin. Bu iki şifrenin aynı olması gerekiyor. Güvenlik için önemli!", 
+            { emotion: 'smile', animation: 'Talking_1' });
+    });
+
+    password2Field.addEventListener('input', function() {
+        const password1 = password1Field.value;
+        const password2 = this.value;
+        const matchStatus = document.getElementById('passwordMatch');
+        
+        if (password2) {
+            if (password1 === password2) {
+                matchStatus.className = 'text-green-600 text-sm mt-1';
+                matchStatus.textContent = '✅ Şifreler eşleşiyor';
+                if (password2.length === password1.length) {
+                    registerAvatar.speak("Mükemmel! Şifreler tam olarak eşleşiyor.", 
+                        { emotion: 'happy', animation: 'Talking_0' });
+                }
+            } else {
+                matchStatus.className = 'text-red-600 text-sm mt-1';
+                matchStatus.textContent = '❌ Şifreler eşleşmiyor';
+            }
+            matchStatus.classList.remove('hidden');
+        }
+        checkFormValidity();
+    });
+
+    // Password toggle functionality
+    window.togglePassword = function(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>';
+            registerAvatar.speak("Şifreniz artık görünür. Güvenli bir yerde olduğunuzdan emin olun!", 
+                { emotion: 'thinking', animation: 'Standing Idle' });
+        } else {
+            input.type = 'password';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+        }
+    };
+
+    function checkPasswordStrength(password) {
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[!@#$%^&*]/.test(password)) score++;
+        return score;
+    }
+
+    function updatePasswordStrengthUI(strength) {
+        const bars = ['strength1', 'strength2', 'strength3', 'strength4'];
+        const text = document.getElementById('strengthText');
+        
+        bars.forEach((bar, index) => {
+            const element = document.getElementById(bar);
+            if (index < strength) {
+                if (strength <= 2) element.className = 'h-1 w-1/4 bg-red-500 rounded';
+                else if (strength <= 3) element.className = 'h-1 w-1/4 bg-yellow-500 rounded';
+                else element.className = 'h-1 w-1/4 bg-green-500 rounded';
+            } else {
+                element.className = 'h-1 w-1/4 bg-gray-200 rounded';
+            }
+        });
+        
+        const strengthTexts = ['Çok zayıf', 'Zayıf', 'Orta', 'Güçlü', 'Çok güçlü'];
+        text.textContent = strengthTexts[strength - 1] || 'Şifre gücü';
+    }
+
+    function checkPasswordRequirements(password) {
+        const requirements = [
+            { id: 'req-length', test: password.length >= 8 },
+            { id: 'req-upper', test: /[A-Z]/.test(password) },
+            { id: 'req-lower', test: /[a-z]/.test(password) },
+            { id: 'req-number', test: /\d/.test(password) }
+        ];
+        
+        requirements.forEach(req => {
+            const element = document.getElementById(req.id);
+            const icon = element.querySelector('span');
+            if (req.test) {
+                element.className = 'flex items-center text-green-700';
+                icon.textContent = '✅';
+            } else {
+                element.className = 'flex items-center text-blue-700';
+                icon.textContent = '⭕';
+            }
+        });
+    }
+
+    function checkFormValidity() {
+        const username = usernameField.value.trim();
+        const password1 = password1Field.value;
+        const password2 = password2Field.value;
+        
+        const isValid = username.length >= 3 && 
+                       /^[a-zA-Z0-9_]+$/.test(username) &&
+                       password1.length >= 8 && 
+                       password2.length >= 8 &&
+                       password1 === password2 && 
+                       checkPasswordStrength(password1) >= 3;
+        
+        nextBtn.disabled = !isValid;
+        nextBtn.className = isValid 
+            ? 'px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2'
+            : 'px-8 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed transition-all duration-200 flex items-center space-x-2';
+        
+        if (isValid && !nextBtn.hasAttribute('data-ready-message-shown')) {
+            nextBtn.setAttribute('data-ready-message-shown', 'true');
+            setTimeout(() => {
+                registerAvatar.speak("Harika! Hesap bilgileriniz tamam. Üçüncü adıma geçmeye hazırsınız!", 
+                    { emotion: 'excited', animation: 'Rumba Dancing' });
+            }, 500);
+        }
+    }
+
+    // Form submission
+    document.getElementById('step2Form').addEventListener('submit', function(e) {
+        const username = usernameField.value.trim();
+        registerAvatar.speak(`${username} kullanıcı adınız kaydediliyor! Profil kişiselleştirme adımına geçiyoruz.`, 
+            { emotion: 'happy', animation: 'Talking_2' });
+        
+        sessionStorage.setItem('registrationUsername', username);
+    });
+
+    // Navigation
+    document.getElementById('backBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        registerAvatar.speak("Önceki adıma dönüyorsunuz. Kişisel bilgiler sayfasına yönlendiriyorum.", 
+            { emotion: 'smile', animation: 'Talking_0', onComplete: () => {
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 800);
+            }});
+    });
+
+    // Avatar interaction
+    setTimeout(() => {
+        if (registerAvatar.avatarAssistant) {
+            registerAvatar.avatarAssistant.addEventListener('click', function() {
+                const messages = [
+                    "Hesap bilgileri oluştururken size yardımcı olabilirim! Hangi konuda yardıma ihtiyacınız var?",
+                    "Kullanıcı adı seçiminde veya şifre oluşturmada rehberlik edebilirim.",
+                    "Güvenli şifre oluşturma ipuçları verebilirim. Bana sorun!",
+                    "İkinci adımda her şey yolunda gidiyor mu? Size nasıl yardımcı olabilirim?"
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                registerAvatar.speak(randomMessage, { emotion: 'happy', animation: 'Talking_1' });
+            });
+        }
+    }, 2000);
+
+    // Progress tracking
+    let stepProgress = 0;
+    const trackProgress = () => {
+        const completedFields = [usernameField, password1Field, password2Field].filter(f => f.value.trim().length > 0).length;
+        if (completedFields > stepProgress) {
+            stepProgress = completedFields;
+            if (stepProgress === 1) {
+                registerAvatar.speak("İyi başlangıç! Devam edin.", { emotion: 'smile', animation: 'Talking_0' });
+            } else if (stepProgress === 2) {
+                registerAvatar.speak("Çok iyi! Neredeyse bitti.", { emotion: 'happy', animation: 'Talking_1' });
+            } else if (stepProgress === 3) {
+                registerAvatar.speak("Tebrikler! Tüm alanları doldurdunuz. Şimdi kontrol edelim.", { emotion: 'excited', animation: 'Talking_2' });
+            }
+        }
+    };
+
+    [usernameField, password1Field, password2Field].forEach(field => {
+        field.addEventListener('input', trackProgress);
+    });
+
+    // Requirements panel interaction
+    document.getElementById('passwordRequirements').addEventListener('click', function() {
+        registerAvatar.speak("Bu gereksinimler şifrenizin güvenliği için önemli. Her maddeyi yeşil yapmaya çalışın!", 
+            { emotion: 'thinking', animation: 'Talking_0' });
+    });
+});
+</script>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 50%, #f3e8ff 75%, #ede9fe 100%);
+        background-attachment: fixed;
+    }
+    
+    #{{ form.username.id_for_label }}:focus,
+    #{{ form.password1.id_for_label }}:focus,
+    #{{ form.password2.id_for_label }}:focus {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        transform: scale(1.02);
+    }
+</style>
+{% endblock %}

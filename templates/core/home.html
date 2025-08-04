@@ -1,0 +1,436 @@
+<!-- templates/core/home.html -->
+
+{% extends 'base.html' %}
+
+{% block guest_content %}
+<div class="min-h-screen">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-pink-600 via-rose-600 to-purple-700"></div>
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        
+        <!-- Decorative elements -->
+        <div class="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full animate-bounce"></div>
+        <div class="absolute top-40 right-20 w-16 h-16 bg-white/5 rounded-full animate-pulse"></div>
+        <div class="absolute bottom-20 left-1/4 w-12 h-12 bg-white/10 rounded-full animate-bounce" style="animation-delay: 0.5s"></div>
+        
+        <div class="relative z-10 px-6 py-20">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Left Content -->
+                    <div class="text-white">
+                        <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+                            <span class="bg-gradient-to-r from-pink-200 to-white bg-clip-text text-transparent">
+                                BinaryGirls
+                            </span>
+                        </h1>
+                        <h2 class="text-2xl lg:text-3xl font-light mb-8 text-pink-100">
+                            AI Destekli Öğrenme Asistanınız
+                        </h2>
+                        <p class="text-xl mb-8 text-pink-50 leading-relaxed">
+                            Gelişmiş yapay zeka teknolojisi ile kişiselleştirilmiş öğrenme deneyimi yaşayın. 
+                            Matematik'ten fizik'e, kimya'dan biyoloji'ye kadar tüm konularda uzman asistanınız.
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 mb-12">
+                            <a href="{% url 'member:register_step1' %}" id="registerBtn"
+                               class="px-8 py-4 bg-white text-pink-600 rounded-2xl font-bold text-lg hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 shadow-xl text-center">
+                                🚀 Hemen Başla
+                            </a>
+                            <a href="{% url 'member:login' %}" id="loginBtn"
+                               class="px-8 py-4 bg-white/20 backdrop-blur-sm text-white rounded-2xl font-medium text-lg hover:bg-white/30 transition-all duration-300 border border-white/30 text-center">
+                                Giriş Yap
+                            </a>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="grid grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-white mb-1">{{ total_users }}+</div>
+                                <div class="text-pink-200 text-sm">Aktif Kullanıcı</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-white mb-1">{{ total_solutions }}+</div>
+                                <div class="text-pink-200 text-sm">Çözüm</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-white mb-1">99%</div>
+                                <div class="text-pink-200 text-sm">Memnuniyet</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Content - Mockup -->
+                    <div class="relative">
+                        <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 shadow-2xl">
+                            <div class="bg-white rounded-2xl p-6 shadow-xl">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold">AI</span>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-800">BinaryGirls AI</div>
+                                        <div class="text-xs text-gray-500">🟢 Aktif</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="bg-gray-100 rounded-xl p-3">
+                                        <p class="text-sm text-gray-700">Merhaba! Size nasıl yardımcı olabilirim? 🤖</p>
+                                    </div>
+                                    <div class="bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl p-3 ml-8">
+                                        <p class="text-sm">Matematik dersinde yardıma ihtiyacım var</p>
+                                    </div>
+                                    <div class="bg-gray-100 rounded-xl p-3">
+                                        <p class="text-sm text-gray-700">Tabii ki! Hangi matematik konusunda yardım istiyorsunuz? 📐</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 flex items-center space-x-2">
+                                    <div class="flex-1 bg-gray-100 rounded-full px-4 py-2">
+                                        <span class="text-gray-500 text-sm">Mesajınızı yazın...</span>
+                                    </div>
+                                    <div class="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">✨ Neden BinaryGirls?</h2>
+                <p class="text-xl text-gray-600">Modern teknoloji ile desteklenen öğrenme deneyimi</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-8 border border-pink-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105" id="feature1">
+                    <div class="text-4xl mb-4">🤖</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">AI Asistan</h3>
+                    <p class="text-gray-600">Gelişmiş yapay zeka ile 7/24 kişiselleştirilmiş yardım alın</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105" id="feature2">
+                    <div class="text-4xl mb-4">📚</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Kapsamlı Çözümler</h3>
+                    <p class="text-gray-600">Tüm derslerde detaylı, adım adım çözüm rehberleri</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105" id="feature3">
+                    <div class="text-4xl mb-4">🎨</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Kişisel Avatar</h3>
+                    <p class="text-gray-600">Kendi AI avatarınızı oluşturun ve etkileşimde bulunun</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105" id="feature4">
+                    <div class="text-4xl mb-4">⚡</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Hızlı Yanıt</h3>
+                    <p class="text-gray-600">Sorularınıza saniyeler içinde akıllı ve doğru yanıtlar</p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-8 border border-yellow-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105" id="feature5">
+                    <div class="text-4xl mb-4">📊</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">İlerleme Takibi</h3>
+                    <p class="text-gray-600">Öğrenme sürecinizi takip edin ve gelişiminizi görün</p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 border border-indigo-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105" id="feature6">
+                    <div class="text-4xl mb-4">🌟</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Premium Deneyim</h3>
+                    <p class="text-gray-600">Modern arayüz ve kullanıcı dostu tasarım</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Solutions -->
+    {% if featured_solutions %}
+    <div class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">🔥 Öne Çıkan Çözümler</h2>
+                <p class="text-xl text-gray-600">En popüler ve faydalı çözümlerimizi keşfedin</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                {% for solution in featured_solutions %}
+                <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <span class="text-2xl">{{ solution.subject.icon }}</span>
+                        <span class="font-medium text-gray-600">{{ solution.subject.name }}</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">{{ solution.title }}</h3>
+                    <p class="text-gray-600 text-sm mb-4">{{ solution.description|truncatewords:15 }}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs rounded-full">
+                            {{ solution.get_difficulty_display }}
+                        </span>
+                        <div class="flex items-center space-x-2 text-xs text-gray-500">
+                            <span>👁 {{ solution.view_count }}</span>
+                            <span>❤️ {{ solution.like_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CTA Section -->
+    <div class="py-20 bg-gradient-to-r from-pink-600 to-purple-700">
+        <div class="max-w-4xl mx-auto text-center px-6">
+            <h2 class="text-4xl font-bold text-white mb-6">🚀 Öğrenme Yolculuğunuz Başlasın!</h2>
+            <p class="text-xl text-pink-100 mb-8">Ücretsiz hesap oluşturun ve AI destekli öğrenmenin gücünü keşfedin</p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'member:register_step1' %}" id="ctaRegisterBtn"
+                   class="px-8 py-4 bg-white text-pink-600 rounded-2xl font-bold text-lg hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 shadow-xl">
+                    ✨ Ücretsiz Başla
+                </a>
+                <a href="{% url 'member:login' %}" id="ctaLoginBtn"
+                   class="px-8 py-4 bg-white/20 backdrop-blur-sm text-white rounded-2xl font-medium text-lg hover:bg-white/30 transition-all duration-300 border border-white/30">
+                    Zaten Hesabım Var
+                </a>
+            </div>
+            
+            <p class="text-pink-200 text-sm mt-6">💳 Kredi kartı gerektirmez • 🔒 Güvenli ve gizli</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Logo & Description -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
+                            <span class="text-white font-bold">B</span>
+                        </div>
+                        <span class="text-2xl font-bold">BinaryGirls</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">AI teknolojisi ile desteklenen yeni nesil öğrenme platformu. Öğrencilerin başarısı için tasarlandı.</p>
+                    <div class="flex space-x-4">
+                        <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center cursor-pointer hover:bg-pink-600 transition-colors">📱</div>
+                        <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center cursor-pointer hover:bg-pink-600 transition-colors">🐦</div>
+                        <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center cursor-pointer hover:bg-pink-600 transition-colors">📧</div>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="font-semibold mb-4">Hızlı Bağlantılar</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">Hakkımızda</a></li>
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">Özellikler</a></li>
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">Fiyatlandırma</a></li>
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">İletişim</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Support -->
+                <div>
+                    <h4 class="font-semibold mb-4">Destek</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">Yardım Merkezi</a></li>
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">SSS</a></li>
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">Gizlilik</a></li>
+                        <li><a href="#" class="hover:text-pink-400 transition-colors">Şartlar</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>© 2025 BinaryGirls. Tüm hakları saklıdır. ❤️ ile Türkiye'de geliştirildi.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js CDN for Avatar System -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+<!-- Avatar System -->
+<script src="{% load static %}{% static 'js/avatar-system.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Home Avatar Assistant
+    const homeAvatar = new GuestAvatarSystem('homeAvatar', {
+        size: 140,
+        position: { bottom: '30px', right: '30px' },
+        messages: {
+            welcome: "Merhaba! Ben BinaryGirls AI asistanınızım. Size nasıl yardımcı olabilirim? Kayıt olmak için 'Hemen Başla' butonuna tıklayabilirsiniz!",
+            tooltip: "AI Rehberiniz | Kayıt olmak için tıklayın!"
+        },
+        autoStart: true
+    });
+
+    // Interactive messaging based on user actions
+    let welcomeShown = false;
+    let featuresExplained = false;
+
+    // Guide users to registration
+    document.querySelectorAll('#registerBtn, #ctaRegisterBtn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            homeAvatar.speak("Harika seçim! Size kayıt sürecinde adım adım yardımcı olacağım. Gelin birlikte başlayalım!", 
+                { emotion: 'excited', animation: 'Rumba Dancing', onComplete: () => {
+                    setTimeout(() => {
+                        window.location.href = this.href;
+                    }, 1000);
+                }});
+        });
+    });
+
+    // Guide users to login
+    document.querySelectorAll('#loginBtn, #ctaLoginBtn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            homeAvatar.speak("Giriş yapmak için size yardımcı olacağım! Hemen yönlendiriyorum.", 
+                { emotion: 'smile', animation: 'Talking_1', onComplete: () => {
+                    setTimeout(() => {
+                        window.location.href = this.href;
+                    }, 1000);
+                }});
+        });
+    });
+
+    // Feature explanations on hover
+    document.querySelectorAll('[id^="feature"]').forEach((feature, index) => {
+        feature.addEventListener('mouseenter', function() {
+            if (!featuresExplained) {
+                const featureMessages = [
+                    "AI asistanınız 7/24 sorularınızı yanıtlamaya hazır! Matematik, fizik, kimya ve daha fazlası...",
+                    "Binlerce çözüme erişin! Her seviyeden öğrenci için hazırlanmış detaylı açıklamalar.",
+                    "Kendi 3D avatarınızı oluşturun ve onunla konuşun! Tamamen kişiselleştirilebilir.",
+                    "Sorularınıza saniyeler içinde akıllı yanıtlar! Yapay zeka gücü parmaklarınızın ucunda.",
+                    "İlerlemenizi takip edin, hedeflerinizi belirleyin ve başarılarınızı kutlayın!",
+                    "Modern tasarım ve kullanıcı dostu arayüz ile öğrenme keyifli hale geliyor!"
+                ];
+                
+                homeAvatar.speak(featureMessages[index], { 
+                    emotion: 'smile', 
+                    animation: 'Talking_0',
+                    rate: 1.1 
+                });
+                featuresExplained = true;
+            }
+        });
+    });
+
+    // --- START: DÜZELTİLMİŞ SCROLL BÖLÜMÜ ---
+    let scrollMessages = {
+        features: false,
+        cta: false
+    };
+
+    // İzlenecek hedef elementleri seçelim
+    const featuresSectionTrigger = document.querySelector('#feature1');
+    const ctaSectionTrigger = document.querySelector('#ctaRegisterBtn');
+
+    window.addEventListener('scroll', function() {
+        // Bir elementin görünür alana girip girmediğini kontrol eden yardımcı fonksiyon
+        const isInViewport = (element) => {
+            if (!element) return false;
+            const rect = element.getBoundingClientRect();
+            // Elementin üst kenarı, ekranın alt kenarından daha yukarıda mı? (yani görünür alana girdi mi?)
+            // Ve elementin alt kenarı, ekranın üst kenarından daha aşağıda mı? (yani tamamen yukarı kaybolmadı mı?)
+            // `window.innerHeight * 0.8` ile elementin biraz ekrana girmesini bekliyoruz.
+            return (
+                rect.top < (window.innerHeight || document.documentElement.clientHeight) * 0.8 &&
+                rect.bottom >= 0
+            );
+        };
+
+        // Features bölümü için tetikleme
+        if (isInViewport(featuresSectionTrigger) && !scrollMessages.features) {
+            scrollMessages.features = true; // Bu mesajın tekrar tetiklenmesini engelle
+            setTimeout(() => {
+                homeAvatar.speak("Bu özelliklerle öğrenme deneyiminiz bambaşka olacak! Hangi özellik ilginizi çekti?", 
+                    { emotion: 'happy', animation: 'Talking_1' });
+            }, 500);
+        }
+        
+        // CTA (Call to Action) bölümü için tetikleme
+        if (isInViewport(ctaSectionTrigger) && !scrollMessages.cta) {
+            scrollMessages.cta = true; // Bu mesajın tekrar tetiklenmesini engelle
+            setTimeout(() => {
+                homeAvatar.speak("Artık beklemeyin! Ücretsiz kayıt olun ve AI destekli öğrenmenin tadını çıkarın!", 
+                    { emotion: 'excited', animation: 'Talking_2' });
+            }, 500);
+        }
+    });
+    // --- END: DÜZELTİLMİŞ SCROLL BÖLÜMÜ ---
+
+    // Page visibility change
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && homeAvatar.isLoaded) {
+            setTimeout(() => {
+                homeAvatar.speak("Tekrar hoş geldiniz! Hâlâ buradayım ve size yardım etmeye hazırım!", 
+                    { emotion: 'happy', animation: 'Talking_0' });
+            }, 1000);
+        }
+    });
+
+    // Long idle detection
+    let idleTimer;
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            if (homeAvatar.isLoaded) {
+                homeAvatar.speak("Hâlâ burada mısınız? Bir şeye yardıma ihtiyacınız varsa, bana tıklayın!", 
+                    { emotion: 'thinking', animation: 'Standing Idle' });
+            }
+        }, 30000); // 30 seconds
+    }
+
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetIdleTimer, true);
+    });
+
+    resetIdleTimer();
+
+    // Avatar click interaction
+    setTimeout(() => {
+        if (homeAvatar.avatarAssistant) {
+            homeAvatar.avatarAssistant.addEventListener('click', function() {
+                const messages = [
+                    "Merhaba! Size nasıl yardımcı olabilirim? Kayıt olmak ister misiniz?",
+                    "BinaryGirls'e hoş geldiniz! Ben sizin AI rehberinizim. Başlamaya hazır mısınız?",
+                    "Sorularınız mı var? Ben buradayım! Kayıt olarak başlayalım!",
+                    "Benimle konuştuğunuz için teşekkürler! Kayıt işleminizde size yardımcı olabilirim."
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                homeAvatar.speak(randomMessage, { emotion: 'happy', animation: 'Talking_1' });
+            });
+        }
+    }, 2000);
+});
+</script>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fbcfe8 50%, #f3e8ff 75%, #ede9fe 100%);
+        background-attachment: fixed;
+    }
+</style>
+{% endblock %}

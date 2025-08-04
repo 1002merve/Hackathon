@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Ayarlar{% endblock %}
+{% block page_description %}Uygulama ayarlarınızı yönetin{% endblock %}
+
+{% block content %}
+<div class="p-6 overflow-y-auto h-full">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-8 text-center">⚙️ Ayarlar</h2>
+        
+        <form method="post" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Appearance Settings -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center space-x-2">
+                    <span class="text-2xl">🎨</span>
+                    <span>Görünüm Ayarları</span>
+                </h3>
+                
+                <div class="space-y-6">
+                    <!-- Dark Mode -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white">Karanlık Mod</h4>
+                            <p class="text-gray-600 dark:text-gray-300">Göz yorgunluğunu azaltmak için karanlık temayı etkinleştirin</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="dark_mode" class="sr-only peer" {% if settings.dark_mode %}checked{% endif %}>
+                            <div class="relative w-14 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-pink-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Compact View -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white">Kompakt Görünüm</h4>
+                            <p class="text-gray-600 dark:text-gray-300">Daha az yer kaplar, daha fazla içerik görürsünüz</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="compact_view" class="sr-only peer" {% if settings.compact_view %}checked{% endif %}>
+                            <div class="relative w-14 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-pink-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- Language -->
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Dil Seçimi</h4>
+                        <select name="language" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            <option value="tr" {% if settings.language == 'tr' %}selected{% endif %}>🇹🇷 Türkçe</option>
+                            <option value="en" {% if settings.language == 'en' %}selected{% endif %}>🇺🇸 English</option>
+                        </select>
+                    </div>
+
+                    <!-- Theme Preview -->
+                    <div class="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
+                        <h4 class="font-semibold text-gray-800 dark:text-white mb-3">Tema Önizleme</h4>
+                        <div class="flex space-x-3">
+                            <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg shadow-lg"></div>
+                            <div class="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-lg"></div>
+                            <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-lg"></div>
+                            <div class="w-12 h-12 bg-gray-800 dark:bg-gray-200 rounded-lg shadow-lg"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center space-x-2">
+                    <span class="text-2xl">🔔</span>
+                    <span>Bildirim Ayarları</span>
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- General Notifications -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div>
+                            <h4 class="font-medium text-gray-800 dark:text-white">Genel Bildirimler</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Sistem bildirimleri ve güncellemeler</p>
+                        </div>
+                        <input type="checkbox" name="notifications_enabled" class="rounded border-gray-300 text-pink-600 focus:ring-pink-500" {% if settings.notifications_enabled %}checked{% endif %}>
+                    </div>
+
+                    <!-- Email Notifications -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div>
+                            <h4 class="font-medium text-gray-800 dark:text-white">E-posta Bildirimleri</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Önemli güncellemeler için e-posta al</p>
+                        </div>
+                        <input type="checkbox" name="email_notifications" class="rounded border-gray-300 text-pink-600 focus:ring-pink-500" {% if settings.email_notifications %}checked{% endif %}>
+                    </div>
+
+                    <!-- Sound Notifications -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div>
+                            <h4 class="font-medium text-gray-800 dark:text-white">Sesli Bildirimler</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Bildirimler için ses çal</p>
+                        </div>
+                        <input type="checkbox" name="sound_enabled" class="rounded border-gray-300 text-pink-600 focus:ring-pink-500" {% if settings.sound_enabled %}checked{% endif %}>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Settings -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center space-x-2">
+                    <span class="text-2xl">⚡</span>
+                    <span>Uygulama Ayarları</span>
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- Auto Save -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div>
+                            <h4 class="font-medium text-gray-800 dark:text-white">Otomatik Kaydet</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Sohbetleri ve ayarları otomatik olarak kaydet</p>
+                        </div>
+                        <input type="checkbox" name="auto_save" class="rounded border-gray-300 text-pink-600 focus:ring-pink-500" {% if settings.auto_save %}checked{% endif %}>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy & Security -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center space-x-2">
+                    <span class="text-2xl">🔒</span>
+                    <span>Gizlilik ve Güvenlik</span>
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                        <div class="flex items-start space-x-3">
+                            <div class="text-blue-500 mt-0.5">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">Veri Güvenliği</h4>
+                                <p class="text-sm text-blue-700 dark:text-blue-300">Tüm verileriniz şifrelenerek güvenli bir şekilde saklanır. Kişisel bilgileriniz hiçbir şekilde üçüncü kişilerle paylaşılmaz.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <button type="button" class="p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 hover:border-pink-500 dark:hover:border-pink-400 transition-colors">
+                            <h4 class="font-medium text-gray-800 dark:text-white">🔑 Şifre Değiştir</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Hesap güvenliğinizi artırın</p>
+                        </button>
+                        
+                        <button type="button" class="p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 hover:border-pink-500 dark:hover:border-pink-400 transition-colors">
+                            <h4 class="font-medium text-gray-800 dark:text-white">📊 Veri İndir</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Verilerinizi indirin</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About & Help -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-6 flex items-center space-x-2">
+                    <span class="text-2xl">ℹ️</span>
+                    <span>Hakkında ve Yardım</span>
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div class="text-2xl mb-2">📱</div>
+                        <h4 class="font-medium text-gray-800 dark:text-white">Uygulama Sürümü</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">v1.0.0</p>
+                    </div>
+                    
+                    <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                        <div class="text-2xl mb-2">💬</div>
+                        <h4 class="font-medium text-gray-800 dark:text-white">Destek</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">7/24 yardım</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="flex justify-end space-x-4 pt-6">
+                <a href="{% url 'core:dashboard' %}" class="px-6 py-3 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors">
+                    İptal
+                </a>
+                <button type="submit" class="px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>💾 Ayarları Kaydet</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Real-time theme preview
+    document.querySelector('input[name="dark_mode"]').addEventListener('change', function() {
+        document.documentElement.classList.toggle('dark', this.checked);
+    });
+    
+    // Form submission feedback
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = `
+            <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>Kaydediliyor...</span>
+        `;
+        submitBtn.disabled = true;
+    });
+</script>
+{% endblock %}
