@@ -13,7 +13,9 @@ Elbette! Projenizin vizyonunu, teknik derinliğini ve harika ekibinizin ruhunu y
 
 [BinaryGirls Demo Videosu](/docs/video.mp4)
 [![BinaryGirls Demo Videosu](/docs/binary.gif)](/docs/video.mp4)
-*(Videoyu izlemek için görsele tıklayın)*
+
+
+[![BinaryGirls Demo Videosu](/docs/example.gif)](/docs/video.mp4)
 
 ## 💡 Projenin Doğuş Hikayesi
 
