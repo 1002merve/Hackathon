@@ -1,7 +1,3 @@
-Elbette! Projenizin vizyonunu, teknik derinliğini ve harika ekibinizin ruhunu yansıtan, son derece detaylı ve profesyonel bir README dosyası hazırladım. Sadece Markdown formatı kullanılarak, projenizin her yönünü en iyi şekilde sergileyecek şekilde tasarlandı.
-
----
-
 # BinaryGirls: AI Destekli Eğitim Asistanı 🚀
 
 ### *Matematiği Sanata Dönüştüren Video Platformu*
@@ -265,6 +261,8 @@ BinaryGirls, sürekli gelişen bir platformdur. Gelecek için hedeflerimiz:
 -   [ ] **Gerçek Zamanlı İşbirliği:** Öğrencilerin arkadaşlarıyla birlikte problem çözebileceği ortamlar oluşturmak.
 -   [ ] **Mobil Uygulama:** Platformun tüm özelliklerini mobil cihazlara taşımak.
 
+En iyi proje
+
 ## 🙏 Teşekkür
 
-Bu projeyi hayata geçirmemize olanak sağlayan **BTK (Bilgi Teknolojileri ve İletişim Kurumu)**'na ve **2025 Hackathon** organizasyon ekibine sonsuz teşekkürler.
+Bu projeyi hayata geçirmemize olanak sağlayan **BTK (Bilgi Teknolojileri ve İletişim Kurumu)**'na ve **2025 Hackathon** organizasyon ekibine sonsuz teşekkürler. 
