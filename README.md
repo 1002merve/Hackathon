@@ -11,7 +11,7 @@
 [![BinaryGirls Demo Videosu](/docs/binary.gif)](/docs/video.mp4)
 
 
-[](/docs/example.gif)
+! [BinaryGirls Demo Videosu](/docs/example.gif)
 
 ## 💡 Projenin Doğuş Hikayesi
 
