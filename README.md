@@ -11,7 +11,8 @@
 
 -------
 
-[[BinaryGirls Demo Videosu](/docs/example.gif)]
+![Example GIF](/docs/example.gif)
+
 
 ## 💡 Projenin Doğuş Hikayesi
 
