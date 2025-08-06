@@ -204,7 +204,11 @@
                         {% endif %}
                         
                         <p class="text-sm leading-relaxed message-content">{{ message.message }}</p>
-                        
+                        {% if message.file_attachment and message.message_type == 'image' %}
+<div class="image-message mt-3">
+    <img src="{{ message.file_attachment.url }}" alt="Yüklenen görsel" class="max-w-full rounded-lg shadow-lg" style="max-width: 250px;">
+</div>
+{% endif %}
                         <div class="flex items-center justify-between mt-3">
                             <p class="text-xs {% if message.is_bot_response %}text-gray-500 dark:text-gray-400{% else %}text-pink-100{% endif %}">
                                 {{ message.created_at|date:"H:i" }}
@@ -718,14 +722,155 @@
     const charCounter = document.getElementById('charCounter');
     const sendingAnimation = document.getElementById('sendingAnimation');
     const newChatBtn = document.getElementById('newChatBtn');
+    const fileInput = document.getElementById('fileInput');
+    
     let currentVideoMessageId = null;
     let currentVideoSuggestionMessageId = null;
+    let currentImageFile = null;
+    let currentImagePreview = null;
+
+    // Drag & Drop overlay elementi oluştur
+    const dragOverlay = document.createElement('div');
+    dragOverlay.className = 'drag-overlay';
+    dragOverlay.innerHTML = `
+        <div class="drag-overlay-content">
+            <div class="text-6xl mb-4">📷</div>
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Görseli Buraya Bırakın</h3>
+            <p class="text-gray-600 dark:text-gray-400">AI'ya gösterimek için görseli sürükleyip bırakın</p>
+        </div>
+    `;
+    document.body.appendChild(dragOverlay);
 
     document.addEventListener('DOMContentLoaded', function() {
         animateExistingMessages();
         setTimeout(scrollToBottom, 500);
         setTimeout(() => messageInput.focus(), 800);
+        
+        // Drag & drop event listeners
+        setupDragAndDrop();
+        
+        // File input event listener
+        fileInput.addEventListener('change', handleFileSelect);
     });
+
+    function setupDragAndDrop() {
+        let dragCounter = 0;
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            document.addEventListener(eventName, handleDragIn, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            document.addEventListener(eventName, handleDragOut, false);
+        });
+
+        function handleDragIn(e) {
+            dragCounter++;
+            if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+                dragOverlay.classList.add('visible');
+            }
+        }
+
+        function handleDragOut(e) {
+            dragCounter--;
+            if (dragCounter === 0) {
+                dragOverlay.classList.remove('visible');
+            }
+        }
+
+        // Handle dropped files
+        document.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            dragCounter = 0;
+            dragOverlay.classList.remove('visible');
+            
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    handleImageFile(file);
+                } else {
+                    showNotification('Lütfen sadece görsel dosyası yükleyin.', 'warning');
+                }
+            }
+        }
+    }
+
+    function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleImageFile(file);
+        } else if (file) {
+            showNotification('Lütfen sadece görsel dosyası seçin.', 'warning');
+        }
+    }
+
+    function handleImageFile(file) {
+        // Dosya boyutu kontrolü (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            showNotification('Dosya boyutu 10MB\'dan küçük olmalıdır.', 'error');
+            return;
+        }
+
+        currentImageFile = file;
+        showImagePreview(file);
+        showNotification('Görsel yüklendi! Mesajınızı yazın ve gönderin. 📷', 'success');
+    }
+
+    function showImagePreview(file) {
+        // Eski preview'ı kaldır
+        removeImagePreview();
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewContainer = document.createElement('div');
+            previewContainer.className = 'image-preview-container';
+            
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'image-preview';
+            img.alt = 'Yüklenen görsel';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'image-preview-close';
+            closeBtn.innerHTML = '×';
+            closeBtn.title = 'Görseli kaldır';
+            closeBtn.onclick = removeImagePreview;
+            
+            previewContainer.appendChild(img);
+            previewContainer.appendChild(closeBtn);
+            
+            // Input'un üstüne ekle
+            messageInput.parentNode.insertBefore(previewContainer, messageInput);
+            
+            currentImagePreview = previewContainer;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImagePreview() {
+        if (currentImagePreview) {
+            currentImagePreview.remove();
+            currentImagePreview = null;
+        }
+        currentImageFile = null;
+        fileInput.value = '';
+    }
 
     function animateExistingMessages() {
         const messages = document.querySelectorAll('.message-container');
@@ -754,9 +899,12 @@
 
     function updateSendButton() {
         const hasText = messageInput.value.trim().length > 0;
-        sendButton.disabled = !hasText;
+        const hasImage = currentImageFile !== null;
+        const canSend = hasText || hasImage;
         
-        if (hasText) {
+        sendButton.disabled = !canSend;
+        
+        if (canSend) {
             sendButton.className = 'px-8 py-4 gradient-bg text-white rounded-2xl hover:shadow-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2 relative overflow-hidden';
         } else {
             sendButton.className = 'px-8 py-4 bg-gray-300 text-gray-500 rounded-2xl cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-lg relative overflow-hidden';
@@ -804,6 +952,417 @@
         });
     }
 
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendMessage();
+    });
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    function startStreamResponse(sessionId, hasImage = false) {
+        const lastMessage = messageInput.getAttribute('data-last-message');
+        
+        if (!lastMessage && !hasImage) {
+            hideTypingIndicator();
+            sendingAnimation.style.opacity = '0';
+            sendButton.disabled = false;
+            return;
+        }
+        
+        fetch('{% url "core:chat_stream" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                message: lastMessage || "Bu görseli analiz eder misin?",
+                session_id: sessionId,
+                has_image: hasImage
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let botMessage = '';
+            let botMessageElement = null;
+
+            function readStream() {
+                return reader.read().then(({ done, value }) => {
+                    if (done) {
+                        hideTypingIndicator();
+                        sendingAnimation.style.opacity = '0';
+                        sendButton.disabled = false;
+                        return;
+                    }
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (let line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                
+                                if (data.error) {
+                                    hideTypingIndicator();
+                                    if (!botMessageElement) {
+                                        addMessageToChat(data.message || 'Bir hata oluştu.', true);
+                                    } else {
+                                        updateBotMessage(botMessageElement, data.message || 'Bir hata oluştu.');
+                                    }
+                                    sendingAnimation.style.opacity = '0';
+                                    sendButton.disabled = false;
+                                    return;
+                                }
+                                
+                                if (data.chunk) {
+                                    if (!botMessageElement) {
+                                        hideTypingIndicator();
+                                        botMessageElement = createBotMessageElement();
+                                        messagesContainer.appendChild(botMessageElement);
+                                    }
+                                    
+                                    botMessage += data.chunk;
+                                    updateBotMessage(botMessageElement, botMessage);
+                                    scrollToBottom();
+                                }
+                                
+                                if (data.done) {
+                                    hideTypingIndicator();
+                                    sendingAnimation.style.opacity = '0';
+                                    sendButton.disabled = false;
+                                    return;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e, line);
+                            }
+                        }
+                    }
+
+                    return readStream();
+                });
+            }
+
+            return readStream();
+        })
+        .catch(error => {
+            console.error('Stream error:', error);
+            hideTypingIndicator();
+            sendingAnimation.style.opacity = '0';
+            sendButton.disabled = false;
+            
+            if (error.message.includes('500')) {
+                addMessageToChat('Sunucu hatası oluştu. API anahtarını kontrol edin. 🔧', true);
+            } else if (error.message.includes('404')) {
+                addMessageToChat('Service bulunamadı. URL kontrol edin. 📡', true);
+            } else {
+                addMessageToChat('Bağlantı hatası oluştu. İnternet bağlantınızı kontrol edin. 📡', true);
+            }
+        });
+    }
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        const hasImage = currentImageFile !== null;
+        
+        if (!message && !hasImage) return;
+
+        sendingAnimation.style.opacity = '1';
+        sendButton.disabled = true;
+
+        // Görsel varsa FormData kullan, yoksa JSON
+        if (hasImage) {
+            const formData = new FormData();
+            formData.append('message', message || '📷 Görsel analizi');
+            formData.append('file', currentImageFile);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            // Mesajı önce UI'ya ekle
+            addMessageToChat(message || '📷 Görsel yüklendi', false, currentImageFile);
+            
+            messageInput.value = '';
+            charCounter.textContent = '0/500';
+            removeImagePreview();
+            updateSendButton();
+            
+            showTypingIndicator();
+            
+            fetch('{% url "core:chat" %}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.action === 'send_message') {
+                    setTimeout(() => {
+                        startStreamResponse(data.session_id, true);
+                    }, 500);
+                } else {
+                    hideTypingIndicator();
+                    sendingAnimation.style.opacity = '0';
+                    sendButton.disabled = false;
+                    addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin.', true);
+                }
+            })
+            .catch(error => {
+                console.error('Send message error:', error);
+                hideTypingIndicator();
+                sendingAnimation.style.opacity = '0';
+                sendButton.disabled = false;
+                addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin. 📤', true);
+            });
+        } else {
+            // Normal metin mesajı
+            addMessageToChat(message, false);
+            
+            messageInput.value = '';
+            charCounter.textContent = '0/500';
+            messageInput.setAttribute('data-last-message', message);
+            updateSendButton();
+            
+            showTypingIndicator();
+            
+            fetch('{% url "core:chat" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    action: 'send_message',
+                    message: message
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.action === 'send_message') {
+                    setTimeout(() => {
+                        startStreamResponse(data.session_id, false);
+                    }, 500);
+                } else {
+                    hideTypingIndicator();
+                    sendingAnimation.style.opacity = '0';
+                    sendButton.disabled = false;
+                    addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin.', true);
+                }
+            })
+            .catch(error => {
+                console.error('Send message error:', error);
+                hideTypingIndicator();
+                sendingAnimation.style.opacity = '0';
+                sendButton.disabled = false;
+                addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin. 📤', true);
+            });
+        }
+    }
+
+    function addMessageToChat(message, isBot, imageFile = null) {
+        const messageDiv = document.createElement('div');
+        const messageId = Date.now();
+        messageDiv.className = `flex ${isBot ? 'justify-start' : 'justify-end'} message-container`;
+        messageDiv.setAttribute('data-message-id', messageId);
+        messageDiv.style.opacity = '0';
+        
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        
+        const videoButton = `
+            <div class="absolute -top-2 -right-2 z-10 opacity-100 transition-all duration-300 transform scale-75 scale-100">
+                <button onclick="openVideoModal(${messageId})" class="video-trigger-btn p-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 relative" title="Buraya kadar olanı videolu çözüm oluştur">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                    </svg>
+                    <div class="absolute inset-0 rounded-full bg-purple-400 animate-ping opacity-75"></div>
+                </button>
+            </div>
+        `;
+        
+        const botAvatarSection = isBot ? `
+            <div class="flex items-start space-x-3 mb-2">
+                <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold">AI</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium">BinaryGirls AI</p>
+                    <div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>Aktif</span>
+                    </div>
+                </div>
+            </div>
+        ` : '';
+        
+        const statusIcon = !isBot ? `
+            <div class="flex items-center space-x-1">
+                <svg class="w-4 h-4 text-pink-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+        ` : '';
+
+        const youtubeButton = isBot ? `
+            <div class="flex justify-end mt-3">
+                <button onclick="showVideoSuggestions('${messageId}')" class="youtube-suggestion-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 transform hover:scale-110 group/youtube" title="İlgili video önerileri">
+                    <svg class="w-4 h-4 group-hover/youtube:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                </button>
+            </div>
+        ` : '';
+        
+        // Görsel varsa göster
+        let imageContent = '';
+        if (imageFile && !isBot) {
+            const imageUrl = URL.createObjectURL(imageFile);
+            imageContent = `
+                <div class="image-message mt-3">
+                    <img src="${imageUrl}" alt="Yüklenen görsel" class="max-w-full rounded-lg" style="max-width: 250px;">
+                </div>
+            `;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="max-w-xs lg:max-w-md group relative">
+                ${videoButton}
+                <div class="px-6 py-4 rounded-2xl transform transition-all duration-200 hover:scale-105 shadow-lg ${
+                    isBot 
+                        ? 'glass-effect border border-white/20 dark:border-gray-600/30 text-gray-800 dark:text-gray-100'
+                        : 'gradient-bg text-white shadow-pink-500/25'
+                }">
+                    ${botAvatarSection}
+                    <p class="text-sm leading-relaxed message-content">${message}</p>
+                    ${imageContent}
+                    <div class="flex items-center justify-between mt-3">
+                        <p class="text-xs ${isBot ? 'text-gray-500 dark:text-gray-400' : 'text-pink-100'}">
+                            ${time}
+                        </p>
+                        ${statusIcon}
+                    </div>
+                    ${youtubeButton}
+                </div>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0)';
+            messageDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        }, 100);
+        
+        if (!isBot && message) {
+            messageInput.setAttribute('data-last-message', message);
+        }
+        scrollToBottom();
+    }
+
+    // Diğer fonksiyonlar aynı kalacak...
+    function createBotMessageElement() {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex justify-start message-container';
+        messageDiv.style.opacity = '0';
+        
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        const messageId = 'bot_' + Date.now();
+        
+        messageDiv.setAttribute('data-message-id', messageId);
+        messageDiv.innerHTML = `
+            <div class="max-w-xs lg:max-w-md group relative">
+                <div class="px-6 py-4 rounded-2xl transform transition-all duration-200 hover:scale-105 shadow-lg glass-effect border border-white/20 dark:border-gray-600/30 text-gray-800 dark:text-gray-100">
+                    <div class="flex items-start space-x-3 mb-2">
+                        <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-sm font-bold">AI</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">BinaryGirls AI</p>
+                            <div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span>Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm leading-relaxed message-content"></p>
+                    <div class="flex items-center justify-between mt-3">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${time}</p>
+                    </div>
+                    <div class="flex justify-end mt-3">
+                        <button onclick="showVideoSuggestions('${messageId}')" class="youtube-suggestion-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 transform hover:scale-110 group/youtube" title="İlgili video önerileri">
+                            <svg class="w-4 h-4 group-hover/youtube:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0)';
+            messageDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        }, 100);
+        
+        return messageDiv;
+    }
+
+    function updateBotMessage(element, message) {
+        const messageContent = element.querySelector('.message-content');
+        if (messageContent) {
+            messageContent.textContent = message;
+        }
+    }
+
+    function sendSuggestedMessage(message) {
+        messageInput.value = message;
+        messageInput.setAttribute('data-last-message', message);
+        messageInput.dispatchEvent(new Event('input'));
+        sendMessage();
+    }
+
+    function showTypingIndicator() {
+        typingIndicator.classList.remove('hidden');
+        scrollToBottom();
+    }
+
+    function hideTypingIndicator() {
+        typingIndicator.classList.add('hidden');
+    }
+
+    function scrollToBottom() {
+        setTimeout(() => {
+            chatArea.scrollTo({
+                top: chatArea.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
+    }
+
+    // Dosya button'u için event listener
+    document.querySelector('button[onclick="document.getElementById(\'fileInput\').click()"]').addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    // Kalan fonksiyonlar aynı (showChatSessions, video modal vs.)
     function showChatSessions() {
         const modal = document.getElementById('chatSessionsModal');
         const container = document.getElementById('sessionsListContainer');
@@ -909,347 +1468,7 @@
         });
     }
 
-    messageForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        sendMessage();
-    });
-
-    messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-
-    function startStreamResponse(sessionId) {
-        const lastMessage = messageInput.getAttribute('data-last-message');
-        
-        if (!lastMessage) {
-            hideTypingIndicator();
-            sendingAnimation.style.opacity = '0';
-            sendButton.disabled = false;
-            return;
-        }
-        
-        fetch('{% url "core:chat_stream" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
-                message: lastMessage,
-                session_id: sessionId
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let botMessage = '';
-            let botMessageElement = null;
-
-            function readStream() {
-                return reader.read().then(({ done, value }) => {
-                    if (done) {
-                        hideTypingIndicator();
-                        sendingAnimation.style.opacity = '0';
-                        sendButton.disabled = false;
-                        return;
-                    }
-
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
-                    
-                    for (let line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.substring(6));
-                                
-                                if (data.error) {
-                                    hideTypingIndicator();
-                                    if (!botMessageElement) {
-                                        addMessageToChat(data.message || 'Bir hata oluştu.', true);
-                                    } else {
-                                        updateBotMessage(botMessageElement, data.message || 'Bir hata oluştu.');
-                                    }
-                                    sendingAnimation.style.opacity = '0';
-                                    sendButton.disabled = false;
-                                    return;
-                                }
-                                
-                                if (data.chunk) {
-                                    if (!botMessageElement) {
-                                        hideTypingIndicator();
-                                        botMessageElement = createBotMessageElement();
-                                        messagesContainer.appendChild(botMessageElement);
-                                    }
-                                    
-                                    botMessage += data.chunk;
-                                    updateBotMessage(botMessageElement, botMessage);
-                                    scrollToBottom();
-                                }
-                                
-                                if (data.done) {
-                                    hideTypingIndicator();
-                                    sendingAnimation.style.opacity = '0';
-                                    sendButton.disabled = false;
-                                    return;
-                                }
-                            } catch (e) {
-                                console.error('Error parsing SSE data:', e, line);
-                            }
-                        }
-                    }
-
-                    return readStream();
-                });
-            }
-
-            return readStream();
-        })
-        .catch(error => {
-            console.error('Stream error:', error);
-            hideTypingIndicator();
-            sendingAnimation.style.opacity = '0';
-            sendButton.disabled = false;
-            
-            if (error.message.includes('500')) {
-                addMessageToChat('Sunucu hatası oluştu. API anahtarını kontrol edin. 🔧', true);
-            } else if (error.message.includes('404')) {
-                addMessageToChat('Service bulunamadı. URL kontrol edin. 📡', true);
-            } else {
-                addMessageToChat('Bağlantı hatası oluştu. İnternet bağlantınızı kontrol edin. 📡', true);
-            }
-        });
-    }
-
-    function sendMessage() {
-        const message = messageInput.value.trim();
-        if (!message) return;
-
-        sendingAnimation.style.opacity = '1';
-        sendButton.disabled = true;
-
-        addMessageToChat(message, false);
-        
-        messageInput.value = '';
-        charCounter.textContent = '0/500';
-        messageInput.setAttribute('data-last-message', message);
-        updateSendButton();
-        
-        showTypingIndicator();
-        
-        fetch('{% url "core:chat" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
-                action: 'send_message',
-                message: message
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success && data.action === 'send_message') {
-                setTimeout(() => {
-                    startStreamResponse(data.session_id);
-                }, 500);
-            } else {
-                hideTypingIndicator();
-                sendingAnimation.style.opacity = '0';
-                sendButton.disabled = false;
-                addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin.', true);
-            }
-        })
-        .catch(error => {
-            console.error('Send message error:', error);
-            hideTypingIndicator();
-            sendingAnimation.style.opacity = '0';
-            sendButton.disabled = false;
-            addMessageToChat('Mesaj gönderilemedi. Lütfen tekrar deneyin. 📤', true);
-        });
-    }
-
-    function createBotMessageElement() {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex justify-start message-container';
-        messageDiv.style.opacity = '0';
-        
-        const now = new Date();
-        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-        const messageId = 'bot_' + Date.now();
-        
-        messageDiv.setAttribute('data-message-id', messageId);
-        messageDiv.innerHTML = `
-            <div class="max-w-xs lg:max-w-md group relative">
-                <div class="px-6 py-4 rounded-2xl transform transition-all duration-200 hover:scale-105 shadow-lg glass-effect border border-white/20 dark:border-gray-600/30 text-gray-800 dark:text-gray-100">
-                    <div class="flex items-start space-x-3 mb-2">
-                        <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white text-sm font-bold">AI</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium">BinaryGirls AI</p>
-                            <div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-                                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                <span>Aktif</span>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-sm leading-relaxed message-content"></p>
-                    <div class="flex items-center justify-between mt-3">
-                        <p class="text-xs text-gray-500 dark:text-gray-400">${time}</p>
-                    </div>
-                    <div class="flex justify-end mt-3">
-                        <button onclick="showVideoSuggestions('${messageId}')" class="youtube-suggestion-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 transform hover:scale-110 group/youtube" title="İlgili video önerileri">
-                            <svg class="w-4 h-4 group-hover/youtube:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        setTimeout(() => {
-            messageDiv.style.opacity = '1';
-            messageDiv.style.transform = 'translateY(0)';
-            messageDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
-        }, 100);
-        
-        return messageDiv;
-    }
-
-    function updateBotMessage(element, message) {
-        const messageContent = element.querySelector('.message-content');
-        if (messageContent) {
-            messageContent.textContent = message;
-        }
-    }
-
-    function sendSuggestedMessage(message) {
-        messageInput.value = message;
-        messageInput.setAttribute('data-last-message', message);
-        messageInput.dispatchEvent(new Event('input'));
-        sendMessage();
-    }
-
-    function addMessageToChat(message, isBot) {
-        const messageDiv = document.createElement('div');
-        const messageId = Date.now();
-        messageDiv.className = `flex ${isBot ? 'justify-start' : 'justify-end'} message-container`;
-        messageDiv.setAttribute('data-message-id', messageId);
-        messageDiv.style.opacity = '0';
-        
-        const now = new Date();
-        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-        
-        const videoButton = `
-            <div class="absolute -top-2 -right-2 z-10 opacity-100 transition-all duration-300 transform scale-75 scale-100">
-                <button onclick="openVideoModal(${messageId})" class="video-trigger-btn p-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 relative" title="Buraya kadar olanı videolu çözüm oluştur">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
-                    </svg>
-                    <div class="absolute inset-0 rounded-full bg-purple-400 animate-ping opacity-75"></div>
-                </button>
-            </div>
-        `;
-        
-        const botAvatarSection = isBot ? `
-            <div class="flex items-start space-x-3 mb-2">
-                <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-white text-sm font-bold">AI</span>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium">BinaryGirls AI</p>
-                    <div class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span>Aktif</span>
-                    </div>
-                </div>
-            </div>
-        ` : '';
-        
-        const statusIcon = !isBot ? `
-            <div class="flex items-center space-x-1">
-                <svg class="w-4 h-4 text-pink-200" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                </svg>
-            </div>
-        ` : '';
-
-        const youtubeButton = isBot ? `
-            <div class="flex justify-end mt-3">
-                <button onclick="showVideoSuggestions('${messageId}')" class="youtube-suggestion-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 transform hover:scale-110 group/youtube" title="İlgili video önerileri">
-                    <svg class="w-4 h-4 group-hover/youtube:animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M23.498 6.186a2.998 2.998 0 00-2.11-2.114C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.527A2.998 2.998 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a2.998 2.998 0 002.11 2.114c1.883.527 9.388.527 9.388.527s7.505 0 9.388-.527a2.998 2.998 0 002.11-2.114C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                </button>
-            </div>
-        ` : '';
-        
-        messageDiv.innerHTML = `
-            <div class="max-w-xs lg:max-w-md group relative">
-                ${videoButton}
-                <div class="px-6 py-4 rounded-2xl transform transition-all duration-200 hover:scale-105 shadow-lg ${
-                    isBot 
-                        ? 'glass-effect border border-white/20 dark:border-gray-600/30 text-gray-800 dark:text-gray-100'
-                        : 'gradient-bg text-white shadow-pink-500/25'
-                }">
-                    ${botAvatarSection}
-                    <p class="text-sm leading-relaxed message-content">${message}</p>
-                    <div class="flex items-center justify-between mt-3">
-                        <p class="text-xs ${isBot ? 'text-gray-500 dark:text-gray-400' : 'text-pink-100'}">
-                            ${time}
-                        </p>
-                        ${statusIcon}
-                    </div>
-                    ${youtubeButton}
-                </div>
-            </div>
-        `;
-        
-        messagesContainer.appendChild(messageDiv);
-        
-        setTimeout(() => {
-            messageDiv.style.opacity = '1';
-            messageDiv.style.transform = 'translateY(0)';
-            messageDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
-        }, 100);
-        
-        messageInput.setAttribute('data-last-message', message);
-        scrollToBottom();
-    }
-
-    function showTypingIndicator() {
-        typingIndicator.classList.remove('hidden');
-        scrollToBottom();
-    }
-
-    function hideTypingIndicator() {
-        typingIndicator.classList.add('hidden');
-    }
-
-    function scrollToBottom() {
-        setTimeout(() => {
-            chatArea.scrollTo({
-                top: chatArea.scrollHeight,
-                behavior: 'smooth'
-            });
-        }, 100);
-    }
-
-    // NEW: YouTube Video Suggestions Functions
+    // Diğer video ve modal fonksiyonları aynı kalacak...
     function showVideoSuggestions(messageId) {
         currentVideoSuggestionMessageId = messageId;
         const modal = document.getElementById('videoSuggestionsModal');
@@ -1271,17 +1490,12 @@
     }
 
     function playVideo(videoId) {
-        // Simulate video opening
         showNotification('Video açılıyor... 🎬', 'info');
-        
-        // Here you could open the video in a new tab/window
-        // or implement an embedded video player
         setTimeout(() => {
             closeVideoSuggestions();
         }, 1000);
     }
 
-    // Existing Video Generation Functions
     function openVideoModal(messageId) {
         currentVideoMessageId = messageId;
         const modal = document.getElementById('videoModal');
@@ -1414,7 +1628,8 @@
         const colors = {
             success: 'border-green-500/50 text-green-700 dark:text-green-300',
             error: 'border-red-500/50 text-red-700 dark:text-red-300',
-            info: 'border-blue-500/50 text-blue-700 dark:text-blue-300'
+            info: 'border-blue-500/50 text-blue-700 dark:text-blue-300',
+            warning: 'border-yellow-500/50 text-yellow-700 dark:text-yellow-300'
         };
         
         notification.className += ` ${colors[type] || colors.info}`;
@@ -1429,13 +1644,16 @@
         }, 3000);
     }
 
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const fileSize = (file.size / 1024 / 1024).toFixed(2);
-            addMessageToChat(`📎 ${file.name} (${fileSize} MB) dosyası yüklendi`, false);
-            showNotification('Dosya başarıyla yüklendi!', 'success');
-        }
+    // Message template için mevcut mesajlarda görsel gösterimi
+    document.addEventListener('DOMContentLoaded', function() {
+        const messages = document.querySelectorAll('.message-container');
+        messages.forEach(messageElement => {
+            const messageContent = messageElement.querySelector('.message-content');
+            if (messageContent && messageContent.textContent.includes('📷')) {
+                // Eğer mesajda file attachment varsa göster
+                // Bu kısım backend'den gelen verilerle çalışacak
+            }
+        });
     });
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1657,6 +1875,161 @@
     background: rgba(31, 41, 55, 0.9);
     border: 1px solid rgba(75, 85, 99, 0.5);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.image-preview-container {
+    position: relative;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.image-preview {
+    max-width: 300px;
+    max-height: 200px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(236, 72, 153, 0.3);
+}
+
+.image-preview-close {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.image-preview-close:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+.image-upload-area {
+    border: 2px dashed #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin: 10px 0;
+}
+
+.image-upload-area:hover {
+    border-color: #ec4899;
+    background: rgba(236, 72, 153, 0.05);
+}
+
+.image-upload-area.dragover {
+    border-color: #ec4899;
+    background: rgba(236, 72, 153, 0.1);
+    transform: scale(1.02);
+}
+
+.dark .image-upload-area {
+    border-color: #374151;
+}
+
+.dark .image-upload-area:hover,
+.dark .image-upload-area.dragover {
+    border-color: #ec4899;
+    background: rgba(236, 72, 153, 0.1);
+}
+
+.image-message {
+    position: relative;
+}
+
+.image-message img {
+    max-width: 100%;
+    border-radius: 12px;
+    margin: 8px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.image-loading {
+    position: relative;
+    padding: 20px;
+    text-align: center;
+}
+
+.image-loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ec4899;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+/* Dosya input'u gizle */
+#fileInput {
+    display: none;
+}
+
+/* Drag & drop feedback */
+.drag-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(236, 72, 153, 0.1);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.drag-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.drag-overlay-content {
+    background: white;
+    dark:bg-gray-800;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.drag-overlay.visible .drag-overlay-content {
+    transform: scale(1);
+}
+
+@keyframes pulse-border {
+    0%, 100% {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4);
+    }
+    50% {
+        border-color: #be185d;
+        box-shadow: 0 0 0 10px rgba(236, 72, 153, 0);
+    }
+}
+
+.uploading {
+    animation: pulse-border 2s infinite;
 }
 </style>
 {% endblock %}

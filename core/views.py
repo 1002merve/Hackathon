@@ -19,9 +19,12 @@ from .utils import get_gemini_response, get_gemini_response_stream
 
 logger = logging.getLogger(__name__)
 
+
+
+
 @login_required
 def chat_stream_response(request):
-    """AI chat streaming response - DÜZELTILMIŞ VERSIYON"""
+    """AI chat streaming response - YENİ API VERSIYONU"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
     
@@ -29,8 +32,9 @@ def chat_stream_response(request):
         data = json.loads(request.body)
         message_text = data.get('message', '').strip()
         session_id = data.get('session_id', '')
+        has_image = data.get('has_image', False)
         
-        logger.info(f"Stream request - Message: {message_text[:50]}... Session: {session_id}")
+        logger.info(f"Stream request - Message: {message_text[:50]}... Session: {session_id} Has Image: {has_image}")
         
         if not message_text:
             return JsonResponse({'success': False, 'error': 'Message is required'})
@@ -44,10 +48,39 @@ def chat_stream_response(request):
             logger.error(f"Session not found: {session_id}")
             return JsonResponse({'success': False, 'error': 'Session not found'})
         
+        # Chat geçmişini al (son 20 mesaj)
+        chat_history = ChatMessage.objects.filter(
+            user=request.user,
+            session=session
+        ).order_by('created_at')[:20]
+        
+        # Geçmişi uygun formata dönüştür (yeni API için)
+        formatted_history = []
+        for msg in chat_history:
+            formatted_history.append({
+                'message': msg.message,
+                'is_bot_response': msg.is_bot_response,
+                'created_at': msg.created_at.isoformat()
+            })
+        
+        # Görsel dosyası varsa al
+        image_file = None
+        if has_image:
+            # Session'daki en son user mesajından dosyayı bul
+            last_user_message = ChatMessage.objects.filter(
+                user=request.user,
+                session=session,
+                is_bot_response=False,
+                file_attachment__isnull=False
+            ).order_by('-created_at').first()
+            
+            if last_user_message and last_user_message.file_attachment:
+                image_file = last_user_message.file_attachment
+        
         def generate_stream():
             """Stream generator function"""
             try:
-                logger.info("Starting stream generation")
+                logger.info("Starting stream generation with history")
                 
                 # Bot mesajını oluştur
                 bot_message = ChatMessage.objects.create(
@@ -61,10 +94,15 @@ def chat_stream_response(request):
                 chunk_count = 0
                 
                 try:
-                    logger.info("Calling Gemini API for stream")
+                    logger.info(f"Calling Gemini API with {len(formatted_history)} history messages")
                     
-                    # Gemini API'den stream al
-                    for chunk in get_gemini_response_stream(message_text, request.user):
+                    # Gemini API'den stream al - geçmiş ve görsel ile birlikte
+                    for chunk in get_gemini_response_stream(
+                        message_text, 
+                        request.user, 
+                        chat_history=formatted_history,
+                        image_file=image_file
+                    ):
                         if chunk:
                             chunk_count += 1
                             full_response += chunk
@@ -82,6 +120,10 @@ def chat_stream_response(request):
                     # Final mesajı kaydet
                     bot_message.message = full_response if full_response else "Yanıt oluşturulamadı."
                     bot_message.save()
+                    
+                    # Session'ı güncelle
+                    session.updated_at = timezone.now()
+                    session.save()
                     
                     # Tamamlandı sinyali gönder
                     final_data = {
@@ -114,16 +156,14 @@ def chat_stream_response(request):
                 }
                 yield f"data: {json.dumps(error_response)}\n\n"
         
-        # StreamingHttpResponse oluştur - Header'ları düzelt
+        # StreamingHttpResponse oluştur
         response = StreamingHttpResponse(
             generate_stream(),
             content_type='text/plain; charset=utf-8'
         )
         
-        # Sadece güvenli header'ları ekle
         response['Cache-Control'] = 'no-cache'
         response['X-Accel-Buffering'] = 'no'
-        # Connection header'ını KALDIRDIK
         
         logger.info("Stream response created successfully")
         return response
@@ -135,9 +175,10 @@ def chat_stream_response(request):
         logger.error(f"Chat stream error: {str(e)}")
         return JsonResponse({'success': False, 'error': f'Internal server error: {str(e)}'})
 
+
 @login_required
 def chat_view(request):
-    """Ana chat view fonksiyonu"""
+    """Ana chat view fonksiyonu - YENİ API VERSIYONU"""
     active_session = ChatSession.objects.filter(user=request.user, is_active=True).first()
     
     if not active_session:
@@ -161,17 +202,20 @@ def chat_view(request):
             logger.info(f"Chat POST request - Action: {action}, Message: {message_text[:30]}...")
             
             if action == 'new_chat':
+                # Mevcut session'ı kapat
                 if active_session.messages.exists():
                     active_session.is_active = False
                     active_session.message_count = active_session.messages.count()
                     active_session.save()
                     
+                    # Başlık oluştur
                     if not active_session.title:
                         first_message = active_session.messages.filter(is_bot_response=False).first()
                         if first_message:
                             active_session.title = first_message.message[:50] + ('...' if len(first_message.message) > 50 else '')
                             active_session.save()
                 
+                # Yeni session oluştur
                 active_session = ChatSession.objects.create(user=request.user, is_active=True)
                 
                 return JsonResponse({
@@ -182,6 +226,7 @@ def chat_view(request):
                 })
             
             elif action == 'send_message' and message_text:
+                # User mesajını kaydet
                 user_message = ChatMessage.objects.create(
                     user=request.user,
                     session=active_session,
@@ -189,6 +234,8 @@ def chat_view(request):
                     is_bot_response=False
                 )
                 
+                # Session'ı güncelle
+                active_session.updated_at = timezone.now()
                 active_session.save()
                 
                 return JsonResponse({
@@ -212,6 +259,56 @@ def chat_view(request):
             logger.error(f"Chat view error: {str(e)}")
             return JsonResponse({'success': False, 'error': str(e)})
     
+    elif request.method == 'POST':
+        # Form data ile gelen dosya yükleme işlemi
+        message_text = request.POST.get('message', '').strip()
+        uploaded_file = request.FILES.get('file')
+        
+        if message_text or uploaded_file:
+            # Dosya tipini kontrol et
+            message_type = 'text'
+            if uploaded_file:
+                if uploaded_file.content_type.startswith('image/'):
+                    message_type = 'image'
+                elif uploaded_file.content_type.startswith('audio/'):
+                    message_type = 'audio'
+                else:
+                    message_type = 'file'
+            
+            user_message = ChatMessage.objects.create(
+                user=request.user,
+                session=active_session,
+                message=message_text if message_text else "📷 Görsel yüklendi",
+                is_bot_response=False,
+                file_attachment=uploaded_file if uploaded_file else None,
+                message_type=message_type
+            )
+            
+            # Session'ı güncelle
+            active_session.updated_at = timezone.now()
+            active_session.save()
+            
+            # AJAX request ise JSON döndür
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                response_data = {
+                    'success': True,
+                    'action': 'send_message',
+                    'user_message': {
+                        'id': user_message.id,
+                        'message': user_message.message,
+                        'timestamp': user_message.created_at.strftime('%H:%M'),
+                        'sender': 'user',
+                        'has_file': bool(uploaded_file),
+                        'file_url': user_message.file_attachment.url if user_message.file_attachment else None,
+                        'file_type': message_type
+                    },
+                    'session_id': str(active_session.id)
+                }
+                return JsonResponse(response_data)
+            
+            # Normal form post ise redirect
+            return redirect('core:chat')
+    
     context = {
         'messages': messages_list,
         'active_session': active_session,
@@ -222,6 +319,7 @@ def chat_view(request):
     
     return render(request, 'core/chat.html', context)
 
+  
 # Dashboard view'u değişmedi, aynı kalabilir
 @login_required
 def dashboard(request):
