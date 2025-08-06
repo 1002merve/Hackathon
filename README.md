@@ -3,13 +3,13 @@
 ### *Matematiği Sanata Dönüştüren Video Platformu*
 
 
----![BINARYGIRLS](/docs/avatar.png)
+![BINARYGIRLS](/docs/avatar.png)
 
 ## Tanıtım Videosu
 
-[BinaryGirls Demo Videosu](/docs/video.mp4)
 [![BinaryGirls Demo Videosu](/docs/binary.gif)](/docs/video.mp4)
 
+-------
 
 ! [BinaryGirls Demo Videosu](/docs/example.gif)
 
