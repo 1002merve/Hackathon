@@ -1,0 +1,9 @@
+include README.md
+include requirements.txt
+include manage.py
+recursive-include agents *
+recursive-include binarygirls *
+recursive-include core *
+recursive-include member *
+recursive-include static *
+recursive-include templates *
