@@ -4,6 +4,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 import uuid
+import requests
+import json
+from django.conf import settings
 
 class Subject(models.Model):
     name = models.CharField(max_length=100, verbose_name='Ders Adı')
@@ -42,7 +45,6 @@ class ChatSession(models.Model):
         return f"{self.user.username} - Oturum {str(self.id)[:8]}"
     
     def save(self, *args, **kwargs):
-        # Eğer başlık yoksa, ilk mesaja göre otomatik başlık oluştur
         if not self.title and self.pk:
             first_message = self.messages.filter(is_bot_response=False).first()
             if first_message:
@@ -50,21 +52,10 @@ class ChatSession(models.Model):
         super().save(*args, **kwargs)
     
     def get_last_message_time(self):
-        """Son mesaj zamanını döndür"""
         last_message = self.messages.last()
         return last_message.created_at if last_message else self.created_at
     
-    def get_participants_preview(self):
-        """Katılımcıların önizlemesini döndür"""
-        messages = self.messages.all()[:3]
-        preview = []
-        for msg in messages:
-            sender = "AI" if msg.is_bot_response else "Sen"
-            preview.append(f"{sender}: {msg.message[:30]}...")
-        return preview
-    
     def get_short_id(self):
-        """UUID'nin kısa versiyonunu döndür"""
         return str(self.id)[:8]
 
 
@@ -125,6 +116,7 @@ class Notification(models.Model):
         ('solution', 'Çözüm'),
         ('system', 'Sistem'),
         ('achievement', 'Başarı'),
+        ('video', 'Video'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -165,10 +157,18 @@ class Settings(models.Model):
 
 
 class ChatVideo(models.Model):
-    """Chat video çözümleri modeli"""
+    """Chat video çözümleri modeli - FastAPI entegrasyonu"""
+    # Kendi ID'miz
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # FastAPI'den gelen request_id
+    fastapi_request_id = models.CharField(max_length=200, unique=True, verbose_name='FastAPI Request ID')
+    
+    # İlişkiler
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='videos')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_videos')
+    
+    # Video bilgileri
     title = models.CharField(max_length=200, verbose_name='Video Başlığı')
     description = models.TextField(blank=True, verbose_name='Video Açıklaması')
     
@@ -193,27 +193,34 @@ class ChatVideo(models.Model):
     
     has_background_music = models.BooleanField(default=True, verbose_name='Arka Plan Müziği')
     
-    # Video dosyası ve meta bilgiler
-    video_file = models.FileField(upload_to='chat_videos/', blank=True, null=True)
-    thumbnail = models.ImageField(upload_to='chat_video_thumbnails/', blank=True, null=True)
-    actual_duration = models.DurationField(null=True, blank=True, verbose_name='Gerçek Süre')
-    file_size = models.PositiveIntegerField(null=True, blank=True, verbose_name='Dosya Boyutu (bytes)')
+    # FastAPI'den gelen durumu
+    status = models.CharField(max_length=20, choices=[
+        ('processing', 'Oluşturuluyor'),
+        ('completed', 'Tamamlandı'),
+        ('failed', 'Başarısız'),
+    ], default='processing')
+    
+    # FastAPI'den gelen video URL'i
+    video_url = models.URLField(blank=True, null=True, verbose_name='Video URL')
+    direct_video_url = models.URLField(blank=True, null=True, verbose_name='Direkt Video URL')
+    static_video_url = models.URLField(blank=True, null=True, verbose_name='Statik Video URL')
+    
+    # Video meta bilgileri
+    file_size_mb = models.FloatField(default=0, verbose_name='Dosya Boyutu (MB)')
+    actual_duration_seconds = models.PositiveIntegerField(default=0, verbose_name='Gerçek Süre (saniye)')
     
     # İstatistikler
     view_count = models.PositiveIntegerField(default=0, verbose_name='Görüntülenme')
     download_count = models.PositiveIntegerField(default=0, verbose_name='İndirme')
     
-    # Durum
-    status = models.CharField(max_length=20, choices=[
-        ('generating', 'Oluşturuluyor'),
-        ('completed', 'Tamamlandı'),
-        ('failed', 'Başarısız'),
-    ], default='generating')
+    # Chat context
+    chat_messages_json = models.TextField(verbose_name='Chat Mesajları JSON')
+    message_up_to_id = models.CharField(max_length=200, verbose_name='Hangi Mesaja Kadar')
     
     # Metadata
-    chat_messages_count = models.PositiveIntegerField(default=0, verbose_name='İşlenen Mesaj Sayısı')
     generation_started_at = models.DateTimeField(auto_now_add=True)
     generation_completed_at = models.DateTimeField(null=True, blank=True)
+    last_status_check = models.DateTimeField(auto_now=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -224,37 +231,150 @@ class ChatVideo(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.title} - {self.session.user.username}"
+        return f"{self.title} - {self.session.user.username} ({self.status})"
     
     def get_short_id(self):
-        """UUID'nin kısa versiyonunu döndür"""
         return str(self.id)[:8]
     
-    def get_file_size_mb(self):
-        """Dosya boyutunu MB cinsinden döndür"""
-        if self.file_size:
-            return round(self.file_size / (1024 * 1024), 2)
-        return 0
-    
     def get_duration_display(self):
-        """Süreyi okunabilir formatta döndür"""
-        if self.actual_duration:
-            total_seconds = int(self.actual_duration.total_seconds())
-            minutes = total_seconds // 60
-            seconds = total_seconds % 60
+        if self.actual_duration_seconds:
+            minutes = self.actual_duration_seconds // 60
+            seconds = self.actual_duration_seconds % 60
             return f"{minutes}:{seconds:02d}"
         return "0:00"
     
     def increment_view_count(self):
-        """Görüntülenme sayısını artır"""
         self.view_count += 1
         self.save(update_fields=['view_count'])
     
     def increment_download_count(self):
-        """İndirme sayısını artır"""
         self.download_count += 1
         self.save(update_fields=['download_count'])
+    
+    def update_from_fastapi_status(self, fastapi_response):
+        """FastAPI'den gelen durumu güncelle"""
+        if fastapi_response.get('status') == 'completed':
+            self.status = 'completed'
+            self.generation_completed_at = timezone.now()
+            
+            video_urls = fastapi_response.get('video_urls', {})
+            self.video_url = video_urls.get('api')
+            self.direct_video_url = video_urls.get('direct') 
+            self.static_video_url = video_urls.get('static')
+            
+        elif fastapi_response.get('status') == 'failed':
+            self.status = 'failed'
+            
+        self.last_status_check = timezone.now()
+        self.save()
+    
+    @classmethod
+    def create_video_request(cls, session, user, message_up_to_id, options=None):
+        """FastAPI'ye video oluşturma talebi gönder ve model oluştur"""
         
+        # Chat mesajlarını al
+        messages = []
+        message_elements = session.messages.all().order_by('created_at')
+        
+        for msg in message_elements:
+            messages.append({
+                'id': str(msg.id),
+                'message': msg.message,
+                'is_bot_response': msg.is_bot_response,
+                'created_at': msg.created_at.isoformat()
+            })
+            
+            if str(msg.id) == str(message_up_to_id):
+                break
+        
+        if not options:
+            options = {}
+        
+        # FastAPI'ye istek gönder
+        try:
+            # Video API URL'i settings'den al veya varsayılan kullan
+            api_base = getattr(settings, 'VIDEO_API_BASE_URL', 'http://localhost:8001')
+            
+            payload = {
+                'text': f"Sohbet oturumu: {session.get_short_id()}",
+                'video_type': options.get('video_type', 'solution'),
+                'chat_data': messages,
+                'options': {
+                    'style': options.get('style', 'animated'),
+                    'duration': options.get('duration', 'medium'),
+                    'speed': options.get('speed', 'normal'),
+                    'background_music': options.get('background_music', True)
+                }
+            }
+            
+            response = requests.post(
+                f"{api_base}/api/create_video",
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                fastapi_data = response.json()
+                
+                # Django modelini oluştur
+                video = cls.objects.create(
+                    fastapi_request_id=fastapi_data.get('request_id'),
+                    session=session,
+                    user=user,
+                    title=f"Video Çözüm - {session.title or session.get_short_id()}",
+                    description=f"Sohbet {session.get_short_id()} için AI destekli video çözümü",
+                    video_style=options.get('style', 'animated'),
+                    duration_preference=options.get('duration', 'medium'),
+                    speech_speed=options.get('speed', 'normal'),
+                    has_background_music=options.get('background_music', True),
+                    chat_messages_json=json.dumps(messages),
+                    message_up_to_id=str(message_up_to_id),
+                    status='processing'
+                )
+                
+                return video, fastapi_data
+                
+            else:
+                raise Exception(f"FastAPI error: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            # Hata durumunda bile model oluştur
+            video = cls.objects.create(
+                fastapi_request_id=f"error_{uuid.uuid4()}",
+                session=session,
+                user=user,
+                title=f"Video Çözüm - {session.title or session.get_short_id()} (Hata)",
+                description=f"Video oluşturma hatası: {str(e)}",
+                video_style=options.get('style', 'animated'),
+                duration_preference=options.get('duration', 'medium'),
+                speech_speed=options.get('speed', 'normal'),
+                has_background_music=options.get('background_music', True),
+                chat_messages_json=json.dumps(messages),
+                message_up_to_id=str(message_up_to_id),
+                status='failed'
+            )
+            
+            return video, {'error': str(e)}
+    
+    def check_fastapi_status(self):
+        """FastAPI'den video durumunu kontrol et"""
+        if self.status == 'completed' or self.status == 'failed':
+            return
+            
+        try:
+            api_base = getattr(settings, 'VIDEO_API_BASE_URL', 'http://localhost:8001')
+            response = requests.get(
+                f"{api_base}/api/status/{self.fastapi_request_id}",
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.update_from_fastapi_status(data)
+                
+        except Exception as e:
+            print(f"FastAPI status check error: {e}")
+
 
 class TopicContent(models.Model):
     """Konu içerikleri modeli"""
@@ -263,7 +383,6 @@ class TopicContent(models.Model):
     description = models.TextField(verbose_name='Konu Açıklaması')
     content = models.TextField(verbose_name='Konu İçeriği')
     
-    # Konu seviyesi
     LEVEL_CHOICES = [
         ('beginner', 'Başlangıç'),
         ('intermediate', 'Orta'),
@@ -271,16 +390,13 @@ class TopicContent(models.Model):
     ]
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner')
     
-    # Konu durumu
     is_active = models.BooleanField(default=True, verbose_name='Aktif mi?')
     is_featured = models.BooleanField(default=False, verbose_name='Öne Çıkan')
     
-    # Meta bilgiler
     tags = models.CharField(max_length=500, blank=True, help_text='Virgülle ayırın')
     estimated_duration = models.PositiveIntegerField(default=30, verbose_name='Tahmini Süre (dakika)')
     view_count = models.PositiveIntegerField(default=0, verbose_name='Görüntülenme')
     
-    # Tarihler
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_topics')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -312,11 +428,9 @@ class TopicMaterial(models.Model):
     ]
     material_type = models.CharField(max_length=20, choices=MATERIAL_TYPES, default='pdf')
     
-    # Dosya veya link
     file = models.FileField(upload_to='topic_materials/', blank=True, null=True)
     url = models.URLField(blank=True, verbose_name='Dış Bağlantı')
     
-    # Meta bilgiler
     description = models.TextField(blank=True, verbose_name='Açıklama')
     file_size = models.PositiveIntegerField(null=True, blank=True, verbose_name='Dosya Boyutu (bytes)')
     download_count = models.PositiveIntegerField(default=0, verbose_name='İndirme Sayısı')
@@ -346,7 +460,6 @@ class EducationSession(models.Model):
     title = models.CharField(max_length=200, verbose_name='Eğitim Başlığı')
     description = models.TextField(blank=True, verbose_name='Eğitim Açıklaması')
     
-    # Eğitim türü
     EDUCATION_TYPES = [
         ('text', 'Metin Eğitimi'),
         ('audio', 'Sesli Eğitim'),
@@ -355,11 +468,9 @@ class EducationSession(models.Model):
     ]
     education_type = models.CharField(max_length=20, choices=EDUCATION_TYPES, default='text')
     
-    # İçerik ayarları
     use_internet_search = models.BooleanField(default=False, verbose_name='İnternet Araması Kullan')
     include_materials = models.BooleanField(default=True, verbose_name='Materyalleri Dahil Et')
     
-    # Eğitim tercihleri
     language = models.CharField(max_length=10, default='tr', choices=[
         ('tr', 'Türkçe'),
         ('en', 'English'),
@@ -372,16 +483,12 @@ class EducationSession(models.Model):
     ], default='medium')
     
     estimated_duration = models.PositiveIntegerField(default=30, verbose_name='Tahmini Süre (dakika)')
-    
-    # Eğitim içeriği
     content = models.TextField(blank=True, verbose_name='Oluşturulan İçerik')
     
-    # Ses/Video dosyaları
     audio_file = models.FileField(upload_to='education_audio/', blank=True, null=True)
     video_file = models.FileField(upload_to='education_videos/', blank=True, null=True)
     thumbnail = models.ImageField(upload_to='education_thumbnails/', blank=True, null=True)
     
-    # Durum
     STATUS_CHOICES = [
         ('generating', 'Oluşturuluyor'),
         ('completed', 'Tamamlandı'),
@@ -389,11 +496,9 @@ class EducationSession(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generating')
     
-    # İstatistikler
     view_count = models.PositiveIntegerField(default=0, verbose_name='Görüntülenme')
     completion_rate = models.FloatField(default=0.0, verbose_name='Tamamlanma Oranı (%)')
     
-    # Tarihler
     generation_started_at = models.DateTimeField(auto_now_add=True)
     generation_completed_at = models.DateTimeField(null=True, blank=True)
     last_accessed_at = models.DateTimeField(null=True, blank=True)

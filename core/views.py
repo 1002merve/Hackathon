@@ -1,3 +1,5 @@
+# Path: core/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, Http404, StreamingHttpResponse
@@ -7,19 +9,19 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 import json
 import uuid
 import logging
 import time
+import requests
 from datetime import datetime, timedelta
 
-from .models import Subject, Solution, UserSolutionProgress, Notification, Settings, ChatSession, ChatVideo,TopicContent,EducationSession
+from .models import Subject, Solution, UserSolutionProgress, Notification, Settings, ChatSession, ChatVideo, TopicContent, EducationSession
 from member.models import ChatMessage
 from .utils import get_gemini_response, get_gemini_response_stream
 
 logger = logging.getLogger(__name__)
-
-
 
 
 @login_required
@@ -178,7 +180,7 @@ def chat_stream_response(request):
 
 @login_required
 def chat_view(request):
-    """Ana chat view fonksiyonu - YENİ API VERSIYONU"""
+    """Ana chat view fonksiyonu - Video entegrasyonlu"""
     active_session = ChatSession.objects.filter(user=request.user, is_active=True).first()
     
     if not active_session:
@@ -189,9 +191,14 @@ def chat_view(request):
         session=active_session
     ).order_by('created_at')
     
+    # Oturumdaki videoları al
     session_videos = ChatVideo.objects.filter(
         session=active_session
     ).order_by('-created_at')
+    
+    # Pending videoları kontrol et
+    for video in session_videos.filter(status='processing'):
+        video.check_fastapi_status()
     
     if request.method == 'POST' and request.headers.get('Content-Type') == 'application/json':
         try:
@@ -319,8 +326,403 @@ def chat_view(request):
     
     return render(request, 'core/chat.html', context)
 
-  
-# Dashboard view'u değişmedi, aynı kalabilir
+
+@login_required
+def generate_chat_video(request):
+    """Chat video oluşturma - DÜZELTILMIŞ FastAPI entegrasyonu"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            session_id = data.get('session_id')
+            message_id = data.get('message_id')
+            video_options = data.get('video_options', {})
+            
+            logger.info(f"Video generation request - Session: {session_id}, Message: {message_id}")
+            
+            # Session'ı bul
+            session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+            
+            # O mesaja kadar olan tüm mesajları al
+            messages = ChatMessage.objects.filter(
+                session=session
+            ).order_by('created_at')
+            
+            # Message ID'ye kadar olan mesajları filtrele
+            chat_text_parts = []
+            for msg in messages:
+                if msg.is_bot_response:
+                    chat_text_parts.append(f"AI: {msg.message}")
+                else:
+                    chat_text_parts.append(f"Kullanıcı: {msg.message}")
+                
+                # Belirtilen mesaj ID'sine ulaştıysak dur
+                if str(msg.id) == str(message_id):
+                    break
+            
+            # Tüm sohbeti birleştir
+            combined_text = "\n\n".join(chat_text_parts)
+            
+            if not combined_text.strip():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Sohbet içeriği bulunamadı'
+                })
+            
+            # FastAPI'ye gönderilecek form data hazırla
+            api_base = getattr(settings, 'VIDEO_API_BASE_URL', 'http://localhost:8001')
+            
+            # Form data oluştur
+            form_data = {
+                'text': combined_text,
+                'video_type': video_options.get('video_type', 'solution')
+            }
+            
+            logger.info(f"Sending to FastAPI - URL: {api_base}/api/create_video")
+            logger.info(f"Form data keys: {list(form_data.keys())}")
+            logger.info(f"Text length: {len(combined_text)} characters")
+            
+            # FastAPI'ye form data gönder
+            try:
+                response = requests.post(
+                    f"{api_base}/api/create_video",
+                    data=form_data,  # JSON değil, form data
+                    timeout=30
+                )
+                
+                logger.info(f"FastAPI response status: {response.status_code}")
+                logger.info(f"FastAPI response: {response.text}")
+                
+                if response.status_code == 200:
+                    fastapi_data = response.json()
+                    
+                    # Django modelini oluştur
+                    video = ChatVideo.objects.create(
+                        fastapi_request_id=fastapi_data.get('request_id'),
+                        session=session,
+                        user=request.user,
+                        title=f"Video Çözüm - {session.title or session.get_short_id()}",
+                        description=f"Sohbet {session.get_short_id()} için AI destekli video çözümü",
+                        video_style=video_options.get('style', 'animated'),
+                        duration_preference=video_options.get('duration', 'medium'),
+                        speech_speed=video_options.get('speed', 'normal'),
+                        has_background_music=video_options.get('background_music', True),
+                        chat_messages_json=json.dumps(chat_text_parts),
+                        message_up_to_id=str(message_id),
+                        status='processing'
+                    )
+                    
+                    # Bildirim oluştur
+                    Notification.objects.create(
+                        user=request.user,
+                        title='🎬 Video Oluşturma Başlatıldı',
+                        message=f'"{video.title}" adlı video oluşturuluyor...',
+                        notification_type='video'
+                    )
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'video_id': str(video.id),
+                        'fastapi_request_id': video.fastapi_request_id,
+                        'message': 'Video oluşturma başlatıldı!',
+                        'estimated_time': '30-60 saniye',
+                        'status_url': f'/core/video/{video.id}/status/',
+                        'video': {
+                            'id': str(video.id),
+                            'title': video.title,
+                            'status': video.status,
+                            'created_at': video.created_at.isoformat()
+                        }
+                    })
+                    
+                else:
+                    error_detail = response.text
+                    logger.error(f"FastAPI error {response.status_code}: {error_detail}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'FastAPI error: {response.status_code} - {error_detail}'
+                    })
+                    
+            except requests.exceptions.ConnectionError:
+                logger.error("Cannot connect to FastAPI service")
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Video servisi şu anda erişilebilir değil. Lütfen daha sonra tekrar deneyin.'
+                })
+            except requests.exceptions.Timeout:
+                logger.error("FastAPI request timeout")
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Video oluşturma servisi yanıt vermiyor. Lütfen daha sonra tekrar deneyin.'
+                })
+            except Exception as e:
+                logger.error(f"FastAPI request error: {str(e)}")
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Video servisi hatası: {str(e)}'
+                })
+                
+        except Exception as e:
+            logger.error(f"Video generation error: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required
+def chat_video_status(request, video_id):
+    """Video durumu kontrol et"""
+    try:
+        video = get_object_or_404(ChatVideo, id=video_id, user=request.user)
+        
+        # FastAPI'den son durumu kontrol et
+        video.check_fastapi_status()
+        
+        response_data = {
+            'success': True,
+            'video': {
+                'id': str(video.id),
+                'title': video.title,
+                'status': video.status,
+                'duration': video.get_duration_display(),
+                'file_size_mb': video.file_size_mb,
+                'view_count': video.view_count,
+                'download_count': video.download_count,
+                'created_at': video.created_at.isoformat(),
+                'updated_at': video.updated_at.isoformat(),
+                'urls': {
+                    'video_url': video.video_url,
+                    'direct_video_url': video.direct_video_url,
+                    'static_video_url': video.static_video_url,
+                }
+            }
+        }
+        
+        # Tamamlandıysa ve daha önce bildirim gönderilmediyse bildirim gönder
+        if video.status == 'completed':
+            # Daha önce bu video için "tamamlandı" bildirimi gönderilip gönderilmediğini kontrol et
+            notification_exists = video.user.notifications.filter(
+                notification_type='video',
+                message__contains=video.title
+            ).filter(
+                message__contains='tamamlandı'
+            ).exists()
+
+            if not notification_exists:
+                Notification.objects.create(
+                    user=request.user,
+                    title='🎉 Video Hazır!',
+                    message=f'"{video.title}" adlı videonuz hazır. İzleyebilir ve indirebilirsiniz.',
+                    notification_type='video'
+                )
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        logger.error(f"Video status check error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@login_required 
+def chat_video_detail(request, video_id):
+    """Video detayları ve oynatma"""
+    try:
+        video = get_object_or_404(ChatVideo, id=video_id, user=request.user)
+        video.increment_view_count()
+        
+        return JsonResponse({
+            'success': True,
+            'video': {
+                'id': str(video.id),
+                'title': video.title,
+                'description': video.description,
+                'status': video.status,
+                'duration': video.get_duration_display(),
+                'file_size_mb': video.file_size_mb,
+                'view_count': video.view_count,
+                'download_count': video.download_count,
+                'created_at': video.created_at.isoformat(),
+                'video_style': video.get_video_style_display(),
+                'urls': {
+                    'video_url': video.video_url,
+                    'direct_video_url': video.direct_video_url,
+                    'static_video_url': video.static_video_url,
+                },
+                'session': {
+                    'id': str(video.session.id),
+                    'title': video.session.title or f'Oturum {video.session.get_short_id()}',
+                    'short_id': video.session.get_short_id()
+                }
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Video detail error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@login_required
+def download_chat_video(request, video_id):
+    """Video indirme"""
+    try:
+        video = get_object_or_404(ChatVideo, id=video_id, user=request.user)
+        
+        if video.status != 'completed':
+            return JsonResponse({
+                'success': False,
+                'error': 'Video henüz hazır değil'
+            })
+        
+        if not video.direct_video_url:
+            return JsonResponse({
+                'success': False,
+                'error': 'Video dosyası bulunamadı'
+            })
+        
+        video.increment_download_count()
+        
+        return JsonResponse({
+            'success': True,
+            'download_url': video.direct_video_url,
+            'filename': f"binarygirls_video_{video.get_short_id()}.mp4"
+        })
+        
+    except Exception as e:
+        logger.error(f"Video download error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@login_required
+def stream_chat_video(request, video_id):
+    """Video streaming"""
+    try:
+        video = get_object_or_404(ChatVideo, id=video_id, user=request.user)
+        
+        if video.status != 'completed' or not video.video_url:
+            raise Http404("Video bulunamadı")
+        
+        # FastAPI'den stream al
+        api_base = getattr(settings, 'VIDEO_API_BASE_URL', 'http://localhost:8001')
+        response = requests.get(
+            f"{api_base}/api/stream/{video.fastapi_request_id}",
+            stream=True
+        )
+        
+        if response.status_code != 200:
+            raise Http404("Video stream bulunamadı")
+        
+        # Stream'i client'a aktar
+        def generate():
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    yield chunk
+        
+        video.increment_view_count()
+        
+        streaming_response = StreamingHttpResponse(
+            generate(),
+            content_type='video/mp4'
+        )
+        streaming_response['Content-Length'] = response.headers.get('Content-Length')
+        streaming_response['Accept-Ranges'] = 'bytes'
+        
+        return streaming_response
+        
+    except Exception as e:
+        logger.error(f"Video streaming error: {str(e)}")
+        raise Http404("Video bulunamadı")
+
+
+@login_required
+def get_session_videos(request, session_id):
+    """Oturumdaki videoları listele"""
+    try:
+        session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+        videos = ChatVideo.objects.filter(session=session).order_by('-created_at')
+        
+        videos_data = []
+        for video in videos:
+            # Pending olan videoların durumunu kontrol et
+            if video.status == 'processing':
+                video.check_fastapi_status()
+            
+            videos_data.append({
+                'id': str(video.id),
+                'title': video.title,
+                'status': video.status,
+                'duration': video.get_duration_display(),
+                'file_size_mb': video.file_size_mb,
+                'created_at': video.created_at.isoformat(),
+                'video_style': video.get_video_style_display(),
+                'view_count': video.view_count,
+                'urls': {
+                    'detail': f'/core/video/{video.id}/',
+                    'status': f'/core/video/{video.id}/status/',
+                    'download': f'/core/video/{video.id}/download/',
+                    'stream': f'/core/video/{video.id}/stream/',
+                } if video.status == 'completed' else {}
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'videos': videos_data,
+            'count': len(videos_data)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get session videos error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@login_required
+def delete_chat_video(request, video_id):
+    """Video silme"""
+    if request.method == 'DELETE':
+        try:
+            video = get_object_or_404(ChatVideo, id=video_id, user=request.user)
+            
+            # FastAPI'den de sil
+            try:
+                api_base = getattr(settings, 'VIDEO_API_BASE_URL', 'http://localhost:8001')
+                requests.delete(
+                    f"{api_base}/api/video/{video.fastapi_request_id}",
+                    timeout=10
+                )
+            except:
+                pass  # FastAPI'de silme başarısız olsa da Django'dan sil
+            
+            video.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Video silindi'
+            })
+            
+        except Exception as e:
+            logger.error(f"Video delete error: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid method'})
+
+
+# Diğer fonksiyonlar aynı kalabilir...
 @login_required
 def dashboard(request):
     total_solutions = Solution.objects.count()
@@ -355,6 +757,7 @@ def dashboard(request):
     }
     
     return render(request, 'core/dashboard.html', context)
+
 
 @login_required
 def chat_sessions(request):
@@ -443,99 +846,6 @@ def delete_chat_session(request, session_id):
         })
     
     return JsonResponse({'success': False})
-
-
-@login_required
-def generate_chat_video(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            session_id = data.get('session_id')
-            message_id = data.get('message_id')
-            video_options = data.get('video_options', {})
-            
-            session = get_object_or_404(ChatSession, id=session_id, user=request.user)
-            
-            title = f"Video Çözüm - {session.title or session.get_short_id()}"
-            
-            video = ChatVideo.objects.create(
-                session=session,
-                user=request.user,
-                title=title,
-                description=f"Oturum {session.get_short_id()} için video çözümü",
-                video_style=video_options.get('style', 'animated'),
-                duration_preference=video_options.get('duration', 'medium'),
-                speech_speed=video_options.get('speed', 'normal'),
-                has_background_music=video_options.get('background_music', True),
-                chat_messages_count=session.messages.count(),
-                status='generating'
-            )
-            
-            import threading
-            import time
-            
-            def simulate_video_generation():
-                time.sleep(3)
-                video.status = 'completed'
-                video.generation_completed_at = timezone.now()
-                video.actual_duration = timedelta(minutes=4, seconds=32)
-                video.file_size = 15728640
-                video.save()
-            
-            thread = threading.Thread(target=simulate_video_generation)
-            thread.daemon = True
-            thread.start()
-            
-            return JsonResponse({
-                'success': True,
-                'video_id': str(video.id),
-                'message': 'Video oluşturma başlatıldı!',
-                'estimated_time': '30-60 saniye'
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            })
-    
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
-
-
-@login_required
-def chat_video_detail(request, video_id):
-    video = get_object_or_404(ChatVideo, id=video_id, user=request.user)
-    video.increment_view_count()
-    
-    return JsonResponse({
-        'success': True,
-        'video': {
-            'id': str(video.id),
-            'title': video.title,
-            'status': video.status,
-            'duration': video.get_duration_display(),
-            'file_size': video.get_file_size_mb(),
-            'view_count': video.view_count,
-            'download_count': video.download_count,
-            'created_at': video.created_at.isoformat()
-        }
-    })
-
-
-@login_required
-def download_chat_video(request, video_id):
-    video = get_object_or_404(ChatVideo, id=video_id, user=request.user)
-    
-    if video.status != 'completed' or not video.video_file:
-        return JsonResponse({'success': False, 'error': 'Video henüz hazır değil'})
-    
-    video.increment_download_count()
-    
-    return JsonResponse({
-        'success': True,
-        'download_url': video.video_file.url if video.video_file else None,
-        'filename': f"binarygirls_video_{video.get_short_id()}.mp4"
-    })
 
 
 @login_required 
@@ -628,7 +938,7 @@ def export_chat_history(request):
                 'title': video.title,
                 'status': video.status,
                 'duration': video.get_duration_display(),
-                'file_size_mb': video.get_file_size_mb(),
+                'file_size_mb': video.file_size_mb,
                 'created_at': video.created_at.isoformat()
             })
         
@@ -934,7 +1244,6 @@ def home(request):
     }
     
     return render(request, 'core/home.html', context)
-
 
 
 @login_required

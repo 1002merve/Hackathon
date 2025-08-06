@@ -98,7 +98,7 @@ LOGOUT_REDIRECT_URL = '/member/login/'
 # Email configuration (for development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-GEMINI_API_KEY = config('GEMINI_API_KEY', default='AIzaSyCNHaneKcsHabFH9PPxUYBWJ1cJldFshHg')
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 
 LOG_DIR = BASE_DIR / 'logs'
 if not os.path.exists(LOG_DIR):
@@ -159,3 +159,4 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
 ]
+VIDEO_API_BASE_URL = config('VIDEO_API_BASE_URL', default='http://localhost:8001')
