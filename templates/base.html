@@ -18,9 +18,7 @@
                         'fadeIn': 'fadeIn 0.3s ease-out',
                         'slideIn': 'slideIn 0.3s ease-out',
                         'pulse-soft': 'pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'bounce-soft': 'bounce-soft 1s infinite',
-                        'float': 'float 3s ease-in-out infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate'
+                        'bounce-soft': 'bounce-soft 1s infinite'
                     },
                     keyframes: {
                         fadeIn: {
@@ -38,14 +36,6 @@
                         'bounce-soft': {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-5px)' }
-                        },
-                        'float': {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        },
-                        'glow': {
-                            '0%': { boxShadow: '0 0 20px rgba(236, 72, 153, 0.3)' },
-                            '100%': { boxShadow: '0 0 30px rgba(236, 72, 153, 0.6)' }
                         }
                     }
                 }
@@ -129,8 +119,8 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 80px;
-            height: 80px;
+            width: 80px;  /* Varsayılan boyut, JS ile değiştirilecek */
+            height: 80px; /* Varsayılan boyut, JS ile değiştirilecek */
             border-radius: 50%;
             z-index: 1000;
             cursor: grab;
@@ -154,7 +144,7 @@
 
         .global-avatar-assistant.resizing {
             cursor: se-resize;
-            transition: none;
+            transition: none; /* Boyutlandırırken geçişleri devre dışı bırak */
         }
         
         .global-avatar-assistant.speaking {
@@ -168,154 +158,6 @@
             50% { 
                 box-shadow: 0 20px 50px rgba(236, 72, 153, 0.4);
             }
-        }
-
-        /* === VIDEO SUGGESTION SYSTEM STYLES === */
-        .avatar-video-suggestion {
-            position: absolute;
-            /* Değiştirildi: Konum sağ alttan sol üste alındı */
-            top: -10px;
-            left: -10px;
-            /* --- */
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #ff0000, #cc0000);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transform: scale(0);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 25px rgba(255, 0, 0, 0.3);
-            z-index: 15;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .avatar-video-suggestion.show {
-            transform: scale(1);
-        }
-        
-        .avatar-video-suggestion:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 35px rgba(255, 0, 0, 0.4);
-        }
-        
-        .avatar-video-suggestion::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            background: linear-gradient(135deg, #ff0000, #cc0000);
-            border-radius: 50%;
-            opacity: 0.6;
-            animation: glow 2s ease-in-out infinite alternate;
-            z-index: -1;
-        }
-        
-        /* Video Suggestion Bubble */
-        .video-suggestion-bubble {
-            position: absolute;
-            /* Değiştirildi: Konum, yeni butona göre ayarlandı */
-            top: -20px;
-            left: 55px;
-            /* --- */
-            width: 320px;
-            max-height: 400px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            opacity: 0;
-            visibility: hidden;
-            transform: scale(0.8) translateY(20px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 20;
-            overflow: hidden;
-            /* Eklendi: Yeni konumlandırma için transform başlangıç noktası */
-            transform-origin: top left;
-        }
-        
-        .dark .video-suggestion-bubble {
-            background: rgba(31, 41, 55, 0.95);
-            border: 1px solid rgba(75, 85, 99, 0.4);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-        
-        .video-suggestion-bubble.show {
-            opacity: 1;
-            visibility: visible;
-            transform: scale(1) translateY(0);
-        }
-        
-        /* Bubble Arrow */
-        .video-suggestion-bubble::after {
-            content: '';
-            position: absolute;
-            /* Değiştirildi: Okun konumu ve yönü ayarlandı */
-            top: 28px;
-            left: -8px;
-            width: 16px;
-            height: 16px;
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-bottom: none;
-            border-right: none;
-            /* --- */
-            transform: rotate(45deg);
-            backdrop-filter: blur(20px);
-        }
-        
-        .dark .video-suggestion-bubble::after {
-            background: rgba(31, 41, 55, 0.95);
-            border-color: rgba(75, 85, 99, 0.4);
-        }
-        
-        .video-item {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .video-item:hover {
-            background: rgba(236, 72, 153, 0.1);
-            transform: translateX(5px);
-        }
-        
-        .dark .video-item:hover {
-            background: rgba(236, 72, 153, 0.15);
-        }
-        
-        /* Video thumbnails */
-        .video-thumbnail {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .video-thumbnail::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
-            transform: translateX(-100%);
-            transition: transform 0.6s;
-        }
-        
-        .video-item:hover .video-thumbnail::before {
-            transform: translateX(100%);
-        }
-        
-        @keyframes videoSuggestionPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .video-suggestion-pulse {
-            animation: videoSuggestionPulse 2s ease-in-out infinite;
-        }
-        
-        .youtube-icon {
-            animation: bounce-soft 2s ease-in-out infinite;
         }
 
         /* Boyutlandırma tutamacı */
@@ -342,6 +184,32 @@
         .avatar-resize-handle:hover {
             transform: scale(1.2);
         }
+
+        /* DEĞİŞİKLİK BAŞLANGICI: Sessize alma butonu stili */
+        .avatar-mute-button {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dark .avatar-mute-button {
+             background: rgba(31, 41, 55, 0.8);
+        }
+        .avatar-mute-button:hover {
+            transform: scale(1.2);
+        }
+        /* DEĞİŞİKLİK SONU */
 
         .avatar-container-global {
             width: 100%;
@@ -436,16 +304,8 @@
                 width: 20px;
                 height: 20px;
             }
-            .video-suggestion-bubble {
-                /* Değiştirildi: Mobil için de konum güncellendi */
-                left: 50px;
-                top: -20px;
-                width: 280px;
-            }
         }
 
-        /* Diğer mevcut stiller... */
-        
         /* Sidebar styles */
         #sidebar {
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -652,7 +512,8 @@
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body class="transition-colors duration-300">    <!-- Mobile Sidebar Overlay -->
+<body class="transition-colors duration-300 overflow-hidden">
+    <!-- Mobile Sidebar Overlay -->
     <div class="sidebar-overlay md:hidden" onclick="toggleSidebar()"></div>
     
     {% if user.is_authenticated %}
@@ -708,23 +569,9 @@
                             <div id="solutionsSubmenu" class="overflow-hidden transition-all duration-300 max-h-0 opacity-0 sidebar-text">
                                 <ul class="mt-2 ml-4 space-y-1">
                                     <li><a href="{% url 'core:solutions' %}" class="block w-full text-left px-4 py-2 rounded-lg transition-all duration-200 dark:text-gray-400 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 btn-hover">Tüm Çözümler</a></li>
+                                    <li><a href="{% url 'core:solutions_by_subject' 1 %}" class="block w-full text-left px-4 py-2 rounded-lg transition-all duration-200 dark:text-gray-400 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 btn-hover">Matematik</a></li>
                                 </ul>
                             </div>
-                        </li>
-                        <li>
-                            <a href="{% url 'core:topic_tutorial' %}" title="Konu Anlatım" class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 nav-link btn-hover
-                                {% if url_name == 'topic_tutorial' %}
-                                    bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-xl shadow-pink-500/25
-                                {% else %}
-                                    dark:text-gray-300 text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700
-                                {% endif %}">
-                                <div class="flex items-center space-x-3">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 flex-shrink-0">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                    </svg>
-                                    <span class="font-medium sidebar-text">Konu Anlatım</span>
-                                </div>
-                            </a>
                         </li>
 
                         <li>
@@ -850,7 +697,7 @@
             </div>
         </div>
 
-        <!-- Global AI Avatar Assistant with Video Suggestion System -->
+        <!-- Global AI Avatar Assistant -->
         <div id="globalAvatarAssistant" class="global-avatar-assistant no-print">
             <div class="avatar-floating-pulse"></div>
             <div class="avatar-tooltip">AI Asistanım | Sürükle: Taşı, Köşeden: Boyutlandır</div>
@@ -864,55 +711,17 @@
 
             <!-- Resize Handle -->
             <div class="avatar-resize-handle"></div>
-            
-            <!-- === VIDEO SUGGESTION SYSTEM === -->
-            <!-- Video Suggestion Button -->
-            <div id="avatarVideoSuggestionBtn" class="avatar-video-suggestion">
-                <svg class="w-6 h-6 text-white youtube-icon" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+
+            <!-- DEĞİŞİKLİK BAŞLANGICI: Sessize alma butonu eklendi -->
+            <div id="globalMuteButton" class="avatar-mute-button" title="Sesi aç/kapat">
+                <svg class="sound-on-icon w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                     <path d="M10 2.5a.5.5 0 00-1 0v15a.5.5 0 001 0v-15zM4 6.5a.5.5 0 00-1 0v7a.5.5 0 001 0v-7zM16 6.5a.5.5 0 00-1 0v7a.5.5 0 001 0v-7z"/>
+                </svg>
+                <svg class="sound-off-icon w-4 h-4 text-red-600 hidden" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9.383 3.076a1 1 0 011.09.217l3.707 3.707H16a1 1 0 011 1v4a1 1 0 01-1 1h-1.81l3.707 3.707a1 1 0 01-1.414 1.414L3.293 4.293A1 1 0 014.707 2.88L9.383 3.076zm1.414 9.193L12 11.08V8h1.81l2.5 2.5L13.793 13l-1.586-1.586a.5.5 0 00-.707 0zM10 5.172L7.707 7.464 10 9.757V5.172zM5.293 8H3a1 1 0 00-1 1v4a1 1 0 001 1h2.293l-2-2a.5.5 0 010-.707l2-2z" clip-rule="evenodd"/>
                 </svg>
             </div>
-            
-            <!-- Video Suggestion Bubble -->
-            <div id="avatarVideoSuggestionBubble" class="video-suggestion-bubble">
-                <!-- Header -->
-                <div class="p-4 border-b border-white/20 dark:border-gray-600/30">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-gray-800 dark:text-white text-sm">Video Önerileri</h3>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Bu konu için</p>
-                            </div>
-                        </div>
-                        <button id="avatarCloseBubble" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
-                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Video List -->
-                <div class="p-3 space-y-3 max-h-80 overflow-y-auto custom-scrollbar" id="avatarVideoList">
-                    <!-- Video items will be dynamically added here -->
-                </div>
-                
-                <!-- Footer -->
-                <div class="p-3 border-t border-white/20 dark:border-gray-600/30">
-                    <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                        <span>💡 AI tarafından önerildi</span>
-                        <span class="flex items-center space-x-1">
-                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            <span>Güncel</span>
-                        </span>
-                    </div>
-                </div>
-            </div>
+            <!-- DEĞİŞİKLİK SONU -->
         </div>
     {% else %}
         <div class="min-h-screen">
@@ -940,7 +749,7 @@
         let avatarStartX = 0;
         let avatarStartY = 0;
 
-        // === ENHANCED GLOBAL AVATAR SYSTEM WITH VIDEO SUGGESTIONS ===
+        // --- DEĞİŞİKLİK BAŞLANGICI: GlobalAvatarSystem Sınıfının Tam ve Güncel Hali ---
         class GlobalAvatarSystem {
             constructor() {
                 this.avatarAssistant = document.getElementById('globalAvatarAssistant');
@@ -948,12 +757,17 @@
                 
                 this.container = document.getElementById('globalAvatarContainer');
                 this.resizeHandle = this.avatarAssistant.querySelector('.avatar-resize-handle');
-
+                this.muteButton = document.getElementById('globalMuteButton');
+                this.tooltip = this.avatarAssistant.querySelector('.avatar-tooltip');
+                
+                this.isMuted = false;
                 this.scene = null;
                 this.camera = null;
                 this.renderer = null;
                 this.avatar = null;
                 this.mixer = null;
+                this.animations = {};
+                this.currentAnimation = null;
 
                 this.isLoaded = false;
                 this.isDragging = false;
@@ -981,38 +795,6 @@
                 };
                 this.talkingInterval = null;
                 
-                // === VIDEO SUGGESTION SYSTEM ===
-                this.videoSuggestionBtn = document.getElementById('avatarVideoSuggestionBtn');
-                this.videoSuggestionBubble = document.getElementById('avatarVideoSuggestionBubble');
-                this.videoCloseBubble = document.getElementById('avatarCloseBubble');
-                this.videoList = document.getElementById('avatarVideoList');
-                this.isVideoBubbleVisible = false;
-                this.currentTopic = '';
-                
-                // Video suggestion database
-                this.videoSuggestions = {
-                    'matematik': [
-                        { title: 'Trigonometri Temelleri', channel: 'BinaryGirls', duration: '5:34', badge: '🔥 Popüler', thumbnail: 'linear-gradient(135deg, #ff6b6b, #ff8e53)' },
-                        { title: 'Sinüs ve Kosinüs Hesaplaması', channel: 'MathWorld', duration: '8:21', badge: '⭐ Önerilen', thumbnail: 'linear-gradient(135deg, #667eea, #764ba2)' },
-                        { title: 'Pratik Trigonometri Soruları', channel: 'EduChannel', duration: '12:45', badge: '✨ Yeni', thumbnail: 'linear-gradient(135deg, #f093fb, #f5576c)' }
-                    ],
-                    'fizik': [
-                        { title: 'Newton Yasaları', channel: 'PhysicsWorld', duration: '7:22', badge: '🔥 Popüler', thumbnail: 'linear-gradient(135deg, #4facfe, #00f2fe)' },
-                        { title: 'Hareket Denklemleri', channel: 'ScienceHub', duration: '9:15', badge: '⭐ Önerilen', thumbnail: 'linear-gradient(135deg, #a8edea, #fed6e3)' },
-                        { title: 'Momentum ve İmpuls', channel: 'EduPhysics', duration: '6:33', badge: '✨ Yeni', thumbnail: 'linear-gradient(135deg, #ffecd2, #fcb69f)' }
-                    ],
-                    'kimya': [
-                        { title: 'Atom Yapısı', channel: 'ChemWorld', duration: '6:45', badge: '🔥 Popüler', thumbnail: 'linear-gradient(135deg, #a18cd1, #fbc2eb)' },
-                        { title: 'Moleküller Arası Etkileşimler', channel: 'ScienceLab', duration: '10:12', badge: '⭐ Önerilen', thumbnail: 'linear-gradient(135deg, #fad0c4, #ffd1ff)' },
-                        { title: 'Kimyasal Bağlar', channel: 'ChemChannel', duration: '8:55', badge: '✨ Yeni', thumbnail: 'linear-gradient(135deg, #a8c8ff, #c8e6c9)' }
-                    ],
-                    'genel': [
-                        { title: 'Etkili Çalışma Teknikleri', channel: 'StudyTips', duration: '4:28', badge: '🔥 Popüler', thumbnail: 'linear-gradient(135deg, #667eea, #764ba2)' },
-                        { title: 'Sınav Hazırlık Stratejileri', channel: 'EduGuru', duration: '7:15', badge: '⭐ Önerilen', thumbnail: 'linear-gradient(135deg, #f093fb, #f5576c)' },
-                        { title: 'Motivasyon ve Hedef Belirleme', channel: 'SuccessPath', duration: '5:42', badge: '✨ Yeni', thumbnail: 'linear-gradient(135deg, #ff9a9e, #fecfef)' }
-                    ]
-                };
-                
                 this.init();
             }
 
@@ -1024,307 +806,104 @@
                 await this.loadAvatar();
                 this.animate();
                 this.setupInteractions();
-                this.setupVideoSuggestionSystem();
                 this.restoreSettings();
+                this.loadMuteState();
             }
-            
-            setupVideoSuggestionSystem() {
-                // Video suggestion button click
-                this.videoSuggestionBtn.addEventListener('click', () => this.toggleVideoSuggestionBubble());
-                
-                // Close bubble button
-                this.videoCloseBubble.addEventListener('click', () => this.hideVideoSuggestionBubble());
-                
-                // Click outside to close
-                document.addEventListener('click', (e) => {
-                    if (!this.videoSuggestionBubble.contains(e.target) && !this.videoSuggestionBtn.contains(e.target)) {
-                        this.hideVideoSuggestionBubble();
+
+            loadMuteState() {
+                const savedMuteState = localStorage.getItem('globalAvatarMuted');
+                this.setMute(savedMuteState === 'true', false);
+            }
+
+            toggleMute(e) {
+                if (e) e.stopPropagation();
+                this.setMute(!this.isMuted);
+            }
+
+            setMute(isMuted, save = true) {
+                this.isMuted = isMuted;
+                const soundOnIcon = this.muteButton.querySelector('.sound-on-icon');
+                const soundOffIcon = this.muteButton.querySelector('.sound-off-icon');
+
+                if (this.isMuted) {
+                    if ('speechSynthesis' in window) {
+                        speechSynthesis.cancel();
                     }
-                });
-                
-                // Video item clicks
-                this.videoList.addEventListener('click', (e) => {
-                    const videoItem = e.target.closest('.video-item');
-                    if (videoItem) {
-                        this.playVideo(videoItem);
-                    }
-                });
-            }
-            
-            showVideoSuggestion(topic = 'genel') {
-                this.currentTopic = topic;
-                this.videoSuggestionBtn.classList.add('show');
-                
-                // Update video content based on topic
-                this.updateVideoSuggestions(topic);
-                
-                // Add pulse effect
-                setTimeout(() => {
-                    this.videoSuggestionBtn.classList.add('video-suggestion-pulse');
-                }, 500);
-                
-                // Auto remove pulse after a while
-                setTimeout(() => {
-                    this.videoSuggestionBtn.classList.remove('video-suggestion-pulse');
-                }, 5000);
-                
-                // Auto-hide after 10 seconds if not interacted
-                setTimeout(() => {
-                    if (!this.isVideoBubbleVisible) {
-                        this.hideVideoSuggestion();
-                    }
-                }, 10000);
-            }
-            
-            hideVideoSuggestion() {
-                this.videoSuggestionBtn.classList.remove('show', 'video-suggestion-pulse');
-                this.hideVideoSuggestionBubble();
-            }
-            
-            toggleVideoSuggestionBubble() {
-                if (this.isVideoBubbleVisible) {
-                    this.hideVideoSuggestionBubble();
+                    soundOnIcon.classList.add('hidden');
+                    soundOffIcon.classList.remove('hidden');
+                    if(this.tooltip) this.tooltip.textContent = 'Ses kapalı. Açmak için tıklayın.';
                 } else {
-                    this.showVideoSuggestionBubble();
+                    soundOnIcon.classList.remove('hidden');
+                    soundOffIcon.classList.add('hidden');
+                    if(this.tooltip) this.tooltip.textContent = 'AI Asistanım | Sürükle: Taşı, Köşeden: Boyutlandır';
+                }
+                
+                if (save) {
+                    localStorage.setItem('globalAvatarMuted', this.isMuted);
                 }
             }
             
-            showVideoSuggestionBubble() {
-                this.isVideoBubbleVisible = true;
-                this.videoSuggestionBubble.classList.add('show');
-                this.videoSuggestionBtn.classList.remove('video-suggestion-pulse');
-                
-                // Animate video items
-                const videoItems = this.videoList.querySelectorAll('.video-item');
-                videoItems.forEach((item, index) => {
-                    setTimeout(() => {
-                        item.style.transform = 'translateX(0)';
-                        item.style.opacity = '1';
-                    }, index * 100);
-                });
-            }
-            
-            hideVideoSuggestionBubble() {
-                this.isVideoBubbleVisible = false;
-                this.videoSuggestionBubble.classList.remove('show');
-            }
-            
-            updateVideoSuggestions(topic) {
-                const topicKey = topic.toLowerCase();
-                const videos = this.videoSuggestions[topicKey] || this.videoSuggestions['genel'];
-                
-                this.videoList.innerHTML = videos.map(video => `
-                    <div class="video-item p-3 rounded-xl border border-white/10 dark:border-gray-600/20" style="opacity: 0; transform: translateX(-20px);">
-                        <div class="flex space-x-3">
-                            <div class="video-thumbnail w-16 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style="background: ${video.thumbnail};">
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-medium text-gray-800 dark:text-white text-sm line-clamp-2">
-                                    ${video.title}
-                                </h4>
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">${video.channel} • ${video.duration}</p>
-                                <div class="flex items-center space-x-2 mt-1">
-                                    <span class="px-2 py-1 ${this.getBadgeClass(video.badge)} rounded-full text-xs">
-                                        ${video.badge}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            getBadgeClass(badge) {
-                if (badge.includes('Popüler')) return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-                if (badge.includes('Önerilen')) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-                if (badge.includes('Yeni')) return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-                return 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300';
-            }
-            
-            playVideo(videoItem) {
-                const title = videoItem.querySelector('h4').textContent;
-                
-                // Video play simulation
-                videoItem.style.background = 'linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(244, 63, 94, 0.2))';
-                
-                // Show notification
-                this.showNotification(`▶️ "${title}" videosunu izliyorsunuz`);
-                
-                // Animate avatar to speaking
-                this.setExpression('happy');
-                this.speak(`${title} videosunu izlemeye başladınız! Bu konu hakkında size yardımcı olabilirim.`, {
-                    emotion: 'happy',
-                    animation: 'Talking_1'
-                });
-                
-                // Reset background after a while
-                setTimeout(() => {
-                    videoItem.style.background = '';
-                }, 2000);
-                
-                // Close bubble after selection
-                setTimeout(() => {
-                    this.hideVideoSuggestionBubble();
-                }, 1000);
-            }
-            
-            // Public method to trigger from chat system
-            onAIResponseReceived(message) {
-                // Analyze message content to determine topic
-                const topic = this.analyzeTopic(message);
-                
-                // Show video suggestion after a short delay
-                setTimeout(() => {
-                    this.showVideoSuggestion(topic);
-                }, 2000);
-            }
-            
-            analyzeTopic(message) {
-                const lowerMessage = message.toLowerCase();
-                
-                // Mathematics keywords
-                if (lowerMessage.includes('matematik') || lowerMessage.includes('trigonometri') || 
-                    lowerMessage.includes('algebra') || lowerMessage.includes('geometri') ||
-                    lowerMessage.includes('sayı') || lowerMessage.includes('hesap')) {
-                    return 'matematik';
-                }
-                
-                // Physics keywords
-                if (lowerMessage.includes('fizik') || lowerMessage.includes('hareket') || 
-                    lowerMessage.includes('kuvvet') || lowerMessage.includes('enerji') ||
-                    lowerMessage.includes('momentum') || lowerMessage.includes('newton')) {
-                    return 'fizik';
-                }
-                
-                // Chemistry keywords
-                if (lowerMessage.includes('kimya') || lowerMessage.includes('atom') || 
-                    lowerMessage.includes('molekül') || lowerMessage.includes('element') ||
-                    lowerMessage.includes('bağ') || lowerMessage.includes('reaksiyon')) {
-                    return 'kimya';
-                }
-                
-                return 'genel';
-            }
-            
-            showNotification(message) {
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 z-50 p-4 glass-effect rounded-xl border border-white/20 text-gray-800 dark:text-white transform translate-x-full transition-all duration-300';
-                notification.textContent = message;
-                
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.classList.remove('translate-x-full');
-                }, 100);
-                
-                setTimeout(() => {
-                    notification.classList.add('translate-x-full');
-                    setTimeout(() => notification.remove(), 300);
-                }, 3000);
-            }
-
-            setExpression(expressionName) {
-                if (!this.avatar || !this.facialExpressions[expressionName]) return;
-                const expression = this.facialExpressions[expressionName];
-                this.avatar.traverse((child) => {
-                    if (child.isSkinnedMesh && child.morphTargetDictionary) {
-                        Object.keys(child.morphTargetDictionary).forEach((key) => {
-                            if (key !== 'eyeBlinkLeft' && key !== 'eyeBlinkRight') {
-                                const index = child.morphTargetDictionary[key];
-                                if (index !== undefined) {
-                                    child.morphTargetInfluences[index] = expression[key] || 0;
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-
             speak(text, options = {}) {
                 if (!this.isLoaded) return;
-                
                 if ('speechSynthesis' in window) {
                     speechSynthesis.cancel();
                 }
-                
                 const emotion = options.emotion || 'default';
-                const animation = options.animation || 'Talking_0';
-                
+                const animationName = this.animations['Talking_1'] ? 'Talking_1' : 'Idle';
                 this.setExpression(emotion);
-                this.playAnimation(animation);
+                this.playAnimation(animationName);
 
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'tr-TR';
-                    utterance.rate = options.rate || 1;
-                    utterance.pitch = options.pitch || 1.1;
-                    utterance.volume = options.volume || 1;
-                    
-                    utterance.onstart = () => {
-                        this.startTalking();
-                        this.avatarAssistant.classList.add('speaking');
-                    };
-                    
-                    utterance.onend = () => {
-                        this.stopTalking();
-                        this.playAnimation('Idle');
-                        this.setExpression('default');
-                        this.avatarAssistant.classList.remove('speaking');
-                        if (options.onComplete) options.onComplete();
-                    };
-                    
-                    speechSynthesis.speak(utterance);
-                } else {
+                if (this.isMuted) {
                     this.startTalking();
                     setTimeout(() => {
                         this.stopTalking();
                         this.playAnimation('Idle');
                         this.setExpression('default');
-                        if (options.onComplete) options.onComplete();
+                    }, text.length * 120);
+                    return;
+                }
+
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'tr-TR';
+                    utterance.rate = 1;
+                    utterance.pitch = 1.1;
+                    utterance.volume = 1;
+                    utterance.onstart = () => this.startTalking();
+                    utterance.onend = () => {
+                        this.stopTalking();
+                        this.playAnimation('Idle');
+                        this.setExpression('default');
+                    };
+                    speechSynthesis.speak(utterance);
+                } else {
+                    console.warn("Speech Synthesis not supported.");
+                    this.startTalking();
+                    setTimeout(() => {
+                        this.stopTalking();
+                        this.playAnimation('Idle');
+                        this.setExpression('default');
                     }, text.length * 120);
                 }
             }
 
-            startTalking() {
-                if (!this.avatar) return;
-                this.stopTalking();
-                this.avatarAssistant.classList.add('speaking');
-                
-                this.talkingInterval = setInterval(() => {
-                    const intensity = Math.random() * 0.4 + 0.1;
-                    if (this.avatar) {
-                        this.avatar.traverse((child) => {
-                            if (child.isSkinnedMesh && child.morphTargetDictionary) {
-                                const jawOpen = child.morphTargetDictionary['jawOpen'];
-                                const mouthFunnel = child.morphTargetDictionary['mouthFunnel'];
-                                if (jawOpen !== undefined) child.morphTargetInfluences[jawOpen] = intensity;
-                                if (mouthFunnel !== undefined) child.morphTargetInfluences[mouthFunnel] = intensity * 0.5;
-                            }
-                        });
-                    }
-                }, 120);
+            setupInteractions() {
+                this.avatarAssistant.addEventListener('mousedown', this.startDrag.bind(this));
+                document.addEventListener('mousemove', this.drag.bind(this));
+                document.addEventListener('mouseup', this.endDrag.bind(this));
+                this.resizeHandle.addEventListener('mousedown', this.startResize.bind(this));
+                this.muteButton.addEventListener('click', this.toggleMute.bind(this));
             }
 
-            stopTalking() {
-                this.avatarAssistant.classList.remove('speaking');
-                if (this.talkingInterval) {
-                    clearInterval(this.talkingInterval);
-                    this.talkingInterval = null;
-                }
-                
-                if (this.avatar) {
-                    this.avatar.traverse((child) => {
-                        if (child.isSkinnedMesh && child.morphTargetDictionary) {
-                            const jawOpen = child.morphTargetDictionary['jawOpen'];
-                            const mouthFunnel = child.morphTargetDictionary['mouthFunnel'];
-                            if (jawOpen !== undefined) child.morphTargetInfluences[jawOpen] = 0;
-                            if (mouthFunnel !== undefined) child.morphTargetInfluences[mouthFunnel] = 0;
-                        }
-                    });
-                }
+            startDrag(e) {
+                if (e.target === this.resizeHandle || e.target.closest('.avatar-mute-button') || this.isResizing) return;
+                this.isDragging = true;
+                this.avatarAssistant.classList.add('dragging');
+                this.dragStartX = e.clientX;
+                this.dragStartY = e.clientY;
+                const rect = this.avatarAssistant.getBoundingClientRect();
+                this.avatarStartX = rect.left;
+                this.avatarStartY = rect.top;
             }
             
             applySize(size) {
@@ -1338,24 +917,6 @@
                 }
             }
             
-            setupInteractions() {
-                this.avatarAssistant.addEventListener('mousedown', this.startDrag.bind(this));
-                document.addEventListener('mousemove', this.drag.bind(this));
-                document.addEventListener('mouseup', this.endDrag.bind(this));
-                this.resizeHandle.addEventListener('mousedown', this.startResize.bind(this));
-            }
-
-            startDrag(e) {
-                if (e.target === this.resizeHandle || this.isResizing) return;
-                this.isDragging = true;
-                this.avatarAssistant.classList.add('dragging');
-                this.dragStartX = e.clientX;
-                this.dragStartY = e.clientY;
-                const rect = this.avatarAssistant.getBoundingClientRect();
-                this.avatarStartX = rect.left;
-                this.avatarStartY = rect.top;
-            }
-
             drag(e) {
                 if (this.isDragging) {
                     e.preventDefault();
@@ -1424,10 +985,22 @@
             createRenderer() { this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); this.renderer.setSize(80, 80); this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.2; this.container.appendChild(this.renderer.domElement); }
             addLights() { const a = new THREE.AmbientLight(0xffffff, 0.6); this.scene.add(a); const d = new THREE.DirectionalLight(0xffffff, 0.8); d.position.set(2, 4, 2); d.castShadow = true; this.scene.add(d); const f = new THREE.DirectionalLight(0xf3e8ff, 0.3); f.position.set(-2, 2, 1); this.scene.add(f); }
             async loadAvatar() { try { const dracoLoader = new THREE.DRACOLoader(); dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/'); const loader = new THREE.GLTFLoader(); loader.setDRACOLoader(dracoLoader); const modelPath = '/static/models/64f1a714fe61576b46f27ca2.glb'; const avatarGLTF = await new Promise((resolve, reject) => { loader.load(modelPath, resolve, undefined, reject); }); this.avatar = avatarGLTF.scene; this.avatar.position.set(0, 0, 0); this.avatar.scale.set(1, 1, 1); this.avatar.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } }); this.scene.add(this.avatar); const animationsPath = '/static/models/animations/animations.glb'; const animationsGLTF = await new Promise((resolve, reject) => { loader.load(animationsPath, resolve, undefined, reject); }); this.mixer = new THREE.AnimationMixer(this.avatar); this.animations = {}; animationsGLTF.animations.forEach((clip) => { this.animations[clip.name] = this.mixer.clipAction(clip); }); this.playAnimation('Idle'); this.isLoaded = true; this.onAvatarLoaded(); } catch (error) { console.error('Error loading global avatar:', error); this.container.innerHTML = `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, #ec4899, #f43f5e); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><span style="color: white; font-size: 24px;">🤖</span></div>`; this.avatarAssistant.classList.add('loaded'); } }
-            playAnimation(name) { if (!this.animations || !this.animations[name]) return; if (this.currentAnimation) { this.currentAnimation.fadeOut(0.3); } this.currentAnimation = this.animations[name]; this.currentAnimation.reset().fadeIn(0.3).play(); }
+            playAnimation(name) {
+                const animationName = this.animations[name] ? name : 'Idle';
+                if (!this.animations[animationName]) return;
+                if (this.currentAnimation) {
+                    this.currentAnimation.fadeOut(0.3);
+                }
+                this.currentAnimation = this.animations[animationName];
+                this.currentAnimation.reset().fadeIn(0.3).play();
+            }
             onAvatarLoaded() { const l = this.container.querySelector('.avatar-loading-global'); if (l) { l.style.opacity = '0'; setTimeout(() => l.remove(), 300); } this.avatarAssistant.classList.add('loaded'); }
             animate() { requestAnimationFrame(() => this.animate()); if (this.mixer) { this.mixer.update(0.016); } if (this.avatar && this.isLoaded) { this.avatar.position.y = Math.sin(Date.now() * 0.001) * 0.02; } if (this.renderer && this.scene && this.camera) { this.renderer.render(this.scene, this.camera); } }
+            setExpression(expressionName) { if (!this.avatar || !this.facialExpressions[expressionName]) return; const expression = this.facialExpressions[expressionName]; this.avatar.traverse((child) => { if (child.isSkinnedMesh && child.morphTargetDictionary) { Object.keys(child.morphTargetDictionary).forEach((key) => { if (key !== 'eyeBlinkLeft' && key !== 'eyeBlinkRight') { const index = child.morphTargetDictionary[key]; if (index !== undefined) { gsap.to(child.morphTargetInfluences, { [index]: expression[key] || 0, duration: 0.5 }); } } }); } }); }
+            startTalking() { if (!this.avatar) return; this.stopTalking(); this.avatarAssistant.classList.add('speaking'); this.talkingInterval = setInterval(() => { const intensity = Math.random() * 0.4 + 0.1; if (this.avatar) { this.avatar.traverse((child) => { if (child.isSkinnedMesh && child.morphTargetDictionary) { const jawOpen = child.morphTargetDictionary['jawOpen']; const mouthFunnel = child.morphTargetDictionary['mouthFunnel']; if (jawOpen !== undefined) child.morphTargetInfluences[jawOpen] = intensity; if (mouthFunnel !== undefined) child.morphTargetInfluences[mouthFunnel] = intensity * 0.5; } }); } }, 120); }
+            stopTalking() { this.avatarAssistant.classList.remove('speaking'); if (this.talkingInterval) { clearInterval(this.talkingInterval); this.talkingInterval = null; } if (this.avatar) { this.avatar.traverse((child) => { if (child.isSkinnedMesh && child.morphTargetDictionary) { const jawOpen = child.morphTargetDictionary['jawOpen']; const mouthFunnel = child.morphTargetDictionary['mouthFunnel']; if (jawOpen !== undefined) gsap.to(child.morphTargetInfluences, { [jawOpen]: 0, duration: 0.3 }); if (mouthFunnel !== undefined) gsap.to(child.morphTargetInfluences, { [mouthFunnel]: 0, duration: 0.3 }); } }); } }
         }
+        // --- DEĞİŞİKLİK SONU ---
 
         function toggleSidebar() {
             body.classList.toggle('sidebar-mini');
@@ -1534,7 +1107,6 @@
             {% if user.is_authenticated %}
             globalAvatarSystem = new GlobalAvatarSystem();
 
-            // === ENHANCED CHAT OBSERVER FOR VIDEO SUGGESTIONS ===
             const getEmotionFromMessage = (message) => {
                 const lowerMessage = message.toLowerCase();
                 if (lowerMessage.includes('mükemmel') || lowerMessage.includes('harika') || lowerMessage.includes('teşekkür')) return 'happy';
@@ -1553,12 +1125,7 @@
                                 if (messageContentEl && globalAvatarSystem && globalAvatarSystem.isLoaded) {
                                     const messageText = messageContentEl.textContent.trim();
                                     const emotion = getEmotionFromMessage(messageText);
-                                    
-                                    // Speak the message
                                     globalAvatarSystem.speak(messageText, { emotion: emotion, animation: 'Talking_1' });
-                                    
-                                    // Show video suggestion after AI response
-                                    globalAvatarSystem.onAIResponseReceived(messageText);
                                 }
                             }
                         });
@@ -1566,7 +1133,6 @@
                 }
             });
 
-            // Gözlemciyi sadece #messagesContainer elementi mevcut olduğunda (yani chat sayfasında) başlat
             const messagesContainer = document.getElementById('messagesContainer');
             if (messagesContainer) {
                 chatObserver.observe(messagesContainer, { childList: true });

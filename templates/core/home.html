@@ -1,4 +1,3 @@
-<!-- templates/core/home.html -->
 
 {% extends 'base.html' %}
 
@@ -288,31 +287,40 @@ document.addEventListener('DOMContentLoaded', function() {
     let welcomeShown = false;
     let featuresExplained = false;
 
+    // --- BAŞLANGIÇ: DÜZELTİLMİŞ YÖNLENDİRME KODU ---
     // Guide users to registration
     document.querySelectorAll('#registerBtn, #ctaRegisterBtn').forEach(btn => {
         btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            homeAvatar.speak("Harika seçim! Size kayıt sürecinde adım adım yardımcı olacağım. Gelin birlikte başlayalım!", 
-                { emotion: 'excited', animation: 'Rumba Dancing', onComplete: () => {
-                    setTimeout(() => {
-                        window.location.href = this.href;
-                    }, 1000);
-                }});
+            e.preventDefault(); // Yönlendirmeyi kontrol etmek için varsayılan davranışı durdur
+            homeAvatar.speak("Harika seçim! Size kayıt sürecinde adım adım yardımcı olacağım. Gelin birlikte başlayalım!", {
+                emotion: 'excited',
+                animation: 'Rumba Dancing'
+                // onComplete callback'i kaldırıldı
+            });
+            // Konuşmayı başlattıktan hemen sonra (küçük bir gecikme ile) yönlendirme yap
+            setTimeout(() => {
+                window.location.href = this.href;
+            }, 200); // 200 milisaniye, konuşmanın başlaması için yeterli bir süre
         });
     });
 
     // Guide users to login
     document.querySelectorAll('#loginBtn, #ctaLoginBtn').forEach(btn => {
         btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            homeAvatar.speak("Giriş yapmak için size yardımcı olacağım! Hemen yönlendiriyorum.", 
-                { emotion: 'smile', animation: 'Talking_1', onComplete: () => {
-                    setTimeout(() => {
-                        window.location.href = this.href;
-                    }, 1000);
-                }});
+            e.preventDefault(); // Yönlendirmeyi kontrol etmek için varsayılan davranışı durdur
+            homeAvatar.speak("Giriş yapmak için size yardımcı olacağım! Hemen yönlendiriyorum.", {
+                emotion: 'smile',
+                animation: 'Talking_1'
+                // onComplete callback'i kaldırıldı
+            });
+            // Konuşmayı başlattıktan hemen sonra (küçük bir gecikme ile) yönlendirme yap
+            setTimeout(() => {
+                window.location.href = this.href;
+            }, 200); // 200 milisaniye gecikme
         });
     });
+    // --- BİTİŞ: DÜZELTİLMİŞ YÖNLENDİRME KODU ---
+
 
     // Feature explanations on hover
     document.querySelectorAll('[id^="feature"]').forEach((feature, index) => {
